@@ -1,0 +1,90 @@
+@import url("../../Styles/Tokens.css");
+
+.rowItem {
+  box-sizing: border-box;
+  background: transparent;
+
+  border: none;
+  color: var(--text-color-secondary);
+
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+
+  height: var(--size-48);
+  /* flex: 1; */
+  width: 100%;
+  row-gap: var(--spacing-24);
+
+  padding-left: var(--padding-12);
+  padding-right: var(--padding-12);
+  padding-bottom: var(--padding-0);
+  padding-top: var(--padding-0);
+
+  border-radius: var(--radius-0);
+
+  font-family: var(--rowitem-font);
+  font-size: var(--rowitem-font-size);
+  line-height: var(--rowitem-line-height);
+}
+
+.mainContent {
+  display: flex;
+  flex-direction: row;
+  gap: var(--spacing-16);
+
+  flex: 1;
+
+  align-items: flex-start;
+  justify-content: flex-start;
+}
+
+.scholarshipname {
+  display: flex;
+  flex-direction: row;
+  font-weight: var(--font-weight-medium-intermediate);
+
+  align-items: flex-start;
+}
+
+.scholarshiplocation {
+  display: flex;
+  flex-direction: row;
+  font-weight: var(--font-weight-intermediate);
+
+  align-items: center;
+}
+
+.infoContent {
+  display: flex;
+  flex-direction: row;
+
+  font-weight: var(--font-weight-intermediate);
+
+  align-items: center;
+  /* justify-content: flex-start; */
+  /* width: fit-content; */
+
+  gap: var(--spacing-24);
+}
+
+
+.organization,
+.offer,
+.eligibility,
+.deadline {
+  flex: 0 0 auto;
+  text-align: left;
+}
+
+.organization { width: 110px; }
+.offer        { width: 100px; }
+.eligibility  { width: 100px; }
+.deadline     { width: 160px; }
+
+
+.rowItem:hover {
+  background: var(--bg-color-primary);
+  color: var(--text-color-primary);
+}

@@ -1,0 +1,20 @@
+@import url("../../Styles/Tokens.css");
+
+.scholarshipList{
+    display: flex;
+    flex-direction: column;
+
+    align-items: flex-start;
+    justify-content: flex-start;
+    height: 100vh;
+    
+    flex: 1;
+    
+    border: none;
+
+    padding-left: var(--padding-28);
+    padding-right: var(--padding-28);
+
+    column-gap: var(--spacing-1);
+}
+

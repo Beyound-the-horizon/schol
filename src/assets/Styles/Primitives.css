@@ -1,0 +1,75 @@
+:root {
+  /* -----------Numbers----------- */
+  --number-0: 0px;
+  --number-1: 1px;
+  --number-2: 2px;
+  --number-4: 4px;
+  --number-6: 6px;
+  --number-8: 8px;
+  --number-9: 9px;
+  --number-10: 10px;
+  --number-12: 12px;
+  --number-14: 14px;
+  --number-16: 16px;
+  --number-18: 18px;
+  --number-20: 20px;
+  --number-24: 24px;
+  --number-26: 26px;
+  --number-28: 28px;
+  --number-32: 32px;
+  --number-36: 36px;
+  --number-40: 40px;
+  --number-44: 44px;
+  --number-48: 48px;
+  --number-52: 52px;
+  --number-56: 56px;
+  --number-60: 60px;
+  --number-64: 64px;
+  --number-68: 68px;
+  --number-72: 72px;
+  --number-76: 76px;
+  --number-80: 80px;
+  --number-84: 84px;
+  --number-1000: 1000px;
+
+  /* ----------Color---------- */
+  --gray-1: #f9f9f9;
+  --gray-2: #f8f8f8;
+  --gray-3: #f7f7f7;
+  --gray-4: #f5f5f5;
+  --gray-5: #e8e8e8;
+  --gray-6: #d1d1d1;
+  --gray-7: #bababa;
+  --gray-8: #a3a3a3;
+  --gray-9: #767676;
+  --gray-10: #484848;
+  --gray-11: #333333;
+  --gray-12: #1a1a1a;
+  --White: #ffffff;
+  --Black: #000000;
+
+  /* ----------Typography---------- */
+  /* font-family */
+  --sans-serif: "Inter";
+
+  /* font-weight */
+  --font-weight-regular: 400;
+  --font-weight-intermediate: 450;
+  --font-weight-medium: 500;
+  --font-weight-medium-intermediate: 550;
+  --font-weight-semibold: 600;
+
+  /* font-size */
+  --font-size-11: 0.6875rem;
+  --font-size-12: 0.75rem;
+  --font-size-13: 0.8125rem;
+  --font-size-16: 1rem;
+  --font-size-24: 1.5rem;
+
+  /* line-height */
+  --line-height-14: 0.875rem;
+  --line-height-15: 0.9375rem;
+  --line-height-16: 1rem;
+  --line-height-24: 1.5rem;
+  --line-height-28: 1.75rem;
+}

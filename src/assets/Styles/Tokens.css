@@ -1,0 +1,87 @@
+/* @import url("./Primitives.css"); */
+
+:root {
+  /* -----Background----- */
+  --bg-color-primary: var(--gray-1);
+  --bg-color-secondary: var(--gray-5);
+  --bg-color-tertiary: var(--gray-6);
+  /* --bg-color-quaternary: #efeff0; */
+
+  --bg-base-color-light: var(--White);
+
+  /* -----Text----- */
+  --text-color-primary: var(--gray-12);
+  --text-color-secondary: var(--gray-10);
+  --text-color-tertiary: var(--gray-9);
+  --text-color-quaternary: var(--gray-8);
+
+  /* Row item text properties */
+  --rowitem-font: var(--sans-serif);
+  --rowitem-font-size: var(--font-size-16);
+  --rowitem-font-weight: var(--font-weight-intermediate);
+  --rowitem-line-height: var(--line-height-24);
+
+  /* -----Spacing----- */
+  --spacing-0: var(--number-0);
+  --spacing-1: var(--number-1);
+  --spacing-2: var(--number-2);
+  --spacing-4: var(--number-4);
+  --spacing-6: var(--number-6);
+  --spacing-8: var(--number-8);
+  --spacing-9: var(--number-9);
+  --spacing-10: var(--number-10);
+  --spacing-12: var(--number-12);
+  --spacing-14: var(--number-14);
+  --spacing-16: var(--number-16);
+  --spacing-20: var(--number-20);
+  --spacing-24: var(--number-24);
+  --spacing-32: var(--number-32);
+  --spacing-48: var(--number-48);
+
+  /* -----Sizing----- */
+  /* Icon */
+  --icon-size-small: var(--number-14);
+  --icon-size-medium: var(--number-16);
+
+  /* Component sizes */
+  --size-16: var(--number-16);
+  --size-24: var(--number-24);
+  --size-28: var(--number-28);
+  --size-32: var(--number-32);
+  --size-40: var(--number-40);
+  --size-44: var(--number-44);
+  --size-48: var(--number-48);
+  --size-52: var(--number-52);
+  --size-56: var(--number-56);
+
+  /* Padding */
+  --padding-0: var(--number-0);
+  --padding-1: var(--number-1);
+  --padding-2: var(--number-2);
+  --padding-4: var(--number-4);
+  --padding-6: var(--number-6);
+  --padding-8: var(--number-8);
+  --padding-10: var(--number-10);
+  --padding-12: var(--number-12);
+  --padding-14: var(--number-14);
+  --padding-16: var(--number-16);
+  --padding-20: var(--number-20);
+  --padding-28: var(--number-28);
+
+
+  /* -----Border----- */
+  /* width */
+  --border-width-1: var(--number-1);
+
+  /* Color */
+  --color-border-primary: var(--gray-4);
+  --color-border-secondary: var(--gray-5);
+  --color-border-tertiary: var(--gray-6);
+
+  /* -----Radius----- */
+  --radius-0: var(--number-0);
+  --radius-8: var(--number-8);
+  --radius-12: var(--number-12);
+  --radius-16: var(--number-16);
+  --radius-1000: var(--number-1000);
+}

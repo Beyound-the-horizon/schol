@@ -1,0 +1,8 @@
+python=3.13
+fastapi "uvicorn[standard]"
+sqlalchemy "psycopg[binary]"
+pydantic-settings
+langchain
+langchain-google-genai
+langchain-community
+genai

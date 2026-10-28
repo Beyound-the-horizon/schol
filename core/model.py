@@ -5,7 +5,11 @@ from sqlalchemy import Date, DateTime, Integer, String, Text
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column
 
-from db import Base
+try:
+    from core.db import Base
+except ImportError:
+    from db import Base
+
 
 
 class Scholarship(Base):

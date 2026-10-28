@@ -1,24 +1,11 @@
 
-from pydantic import ValidationError
-from core.schemas import ScholarshipCreate
+from core.agents.researcher import research_scholarships
 
-scholarship = ScholarshipCreate(
-    name="Example International Scholarship",
-    provider="Example University",
-    host_country="Germany",
-    degree_level=["Master's"],
-    eligible_countries=["Nigeria"],
-    funding_coverage={
-        "tuition": "Full",
-        "living_stipend": "Unknown",
-    },
-    official_url="https://example.com/scholarship",
+result = research_scholarships(
+    "Research fully funded master's scholarships open to Nigerian "
+    "applicants for the 2027 intake. Find official sources, "
+    "application deadlines, eligibility, and funding coverage. "
+    "Clearly distinguish confirmed facts from unknown information."
 )
 
-print("Valid scholarship!")
-print(scholarship.model_dump(mode="json"))
-
-try:
-    ScholarshipCreate(name="X", unexpected_field="test")
-except ValidationError:
-    print("Invalid record correctly rejected!")
+print(result)

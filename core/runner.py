@@ -2,7 +2,6 @@ import argparse
 import sys
 import os
 
-# Ensure UTF-8 output encoding across Windows consoles
 try:
     if sys.stdout and hasattr(sys.stdout, "reconfigure"):
         sys.stdout.reconfigure(encoding="utf-8", errors="replace")

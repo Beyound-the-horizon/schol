@@ -28,11 +28,11 @@ def run_autonomous_cycle(doc_url: str | None = None, limit: int = 5) -> dict[str
     print("[START] Starting Autonomous Scholarship Research Cycle")
     print("=======================================================\n")
 
-    # Step 1: Read live online catalog
+    # Read live online catalog
     catalog = fetch_curated_scholarships(doc_url=doc_url)
     print(f"[CATALOG] Loaded {len(catalog)} total scholarships from curated registry.")
 
-    # Step 2: Queue selection & deduplication
+    # Queue selection & deduplication
     batch = select_daily_batch(catalog, limit=limit)
     if not batch:
         print("[QUEUE] No eligible candidates to process today.")
@@ -50,7 +50,7 @@ def run_autonomous_cycle(doc_url: str | None = None, limit: int = 5) -> dict[str
     updated_count = 0
     failed_count = 0
 
-    # Step 3: Execute pipeline per scholarship with fault isolation
+    # Execute pipeline per scholarship with fault isolation
     for idx, target in enumerate(batch, 1):
         target_name = target["target_name"]
         print(f"\n[{idx}/{len(batch)}] Processing: {target_name}...")
@@ -93,7 +93,7 @@ def run_autonomous_cycle(doc_url: str | None = None, limit: int = 5) -> dict[str
                 "official_url": write_result.get("official_url"),
             })
 
-            # Polite pause between batch items
+            
             if idx < len(batch):
                 time.sleep(2)
 

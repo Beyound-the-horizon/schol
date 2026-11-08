@@ -1,0 +1,61 @@
+@import url("../../Styles/Tokens.css");
+
+.fieldItem {
+  box-sizing: border-box;
+  width: 100%;
+  height: var(--size-32);
+  border: none;
+  background: var(--bg-color-primary);
+  color: var(--text-color-quaternary);
+  padding-inline: var(--padding-8);
+  font-family: var(--rowitem-font);
+  font-weight: var(--buttonitem-font-weight);
+  font-size: var(--buttonitem-font-size);
+  line-height: var(--buttonitem-line-height);
+  outline: none;
+  box-shadow: none;
+  appearance: none;
+}
+
+.fieldItem:not(:placeholder-shown),
+.fieldItem[data-tone="value"] {
+  color: var(--text-color-primary);
+}
+
+.fieldItem:-webkit-autofill,
+.fieldItem:-webkit-autofill:hover,
+.fieldItem:-webkit-autofill:focus {
+  -webkit-box-shadow: 0 0 0 1000px var(--bg-color-primary) inset;
+  box-shadow: 0 0 0 1000px var(--bg-color-primary) inset;
+  -webkit-text-fill-color: var(--text-color-primary);
+  caret-color: var(--text-color-primary);
+  transition: background-color 99999s ease-out;
+}
+
+.fieldItem:focus,
+.fieldItem:focus-visible {
+  outline: none;
+  box-shadow: none;
+}
+
+.fieldItem[data-tone="placeholder"] {
+  color: var(--text-color-quaternary);
+}
+
+.fieldItem::placeholder {
+  color: var(--text-color-quaternary);
+}
+
+.fieldItem[data-size="24"] {
+  height: var(--size-24);
+}
+
+.fieldItem[data-size="28"] {
+  height: var(--size-28);
+}
+
+@media (max-width: 640px) {
+  .fieldItem {
+    font-size: 1rem;
+  }
+}

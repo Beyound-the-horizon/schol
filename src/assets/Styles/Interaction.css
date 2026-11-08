@@ -1,0 +1,68 @@
+@import url("./Tokens.css");
+
+html {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  scroll-padding-block-start: 52px;
+}
+
+.buttonItem,
+.iconItem,
+.rowItem,
+.filterOption,
+.searchResultRow,
+.locationChip,
+.courseRow,
+.bookmarkRow,
+.documentCard {
+  -webkit-tap-highlight-color: transparent;
+}
+
+.buttonItem:focus-visible,
+.iconItem:focus-visible,
+.rowItem:focus-visible,
+.filterOption:focus-visible,
+.searchResultRow:focus-visible,
+.locationChip:focus-visible,
+.courseRow:focus-visible,
+.bookmarkRow:focus-visible,
+.documentCard:focus-visible {
+  outline: 2px solid var(--text-color-primary);
+  outline-offset: 2px;
+}
+
+.buttonItem,
+.iconItem {
+  transition-property: background-color, color, scale;
+  transition-duration: var(--duration-press);
+  transition-timing-function: var(--ease-out);
+}
+
+.buttonItem:not(:disabled):active,
+.iconItem:not(:disabled):active {
+  scale: 0.96;
+}
+
+.rowItem,
+.filterOption,
+.searchResultRow,
+.locationChip,
+.courseRow,
+.bookmarkRow {
+  transition-property: background-color, color;
+  transition-duration: var(--duration-hover);
+  transition-timing-function: ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .buttonItem,
+  .iconItem,
+  .rowItem,
+  .filterOption,
+  .searchResultRow,
+  .searchPanel {
+    transition: none;
+    animation: none;
+    scale: none;
+  }
+}

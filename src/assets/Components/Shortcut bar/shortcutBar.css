@@ -1,0 +1,61 @@
+@import url("../../Styles/Tokens.css");
+
+.shortcutBar {
+  display: flex;
+  justify-content: center;
+
+  border-top: var(--border-width-1) solid var(--color-border-primary);
+  border-left: none;
+  border-right: none;
+  border-bottom: none;
+  border-radius: var(--radius-0);
+}
+
+.shortcutBar[data-placement="embedded"] {
+  margin-inline: calc(var(--padding-6) * -1);
+  margin-block-start: var(--spacing-8);
+  pointer-events: none;
+}
+
+.shortcutGroup {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 8px 14px;
+  width: 100%;
+  padding: 8px 12px;
+  background: var(--bg-base-color-light);
+  color: var(--text-color-tertiary);
+  font-family: var(--rowitem-font);
+  font-size: var(--buttonitem-font-size);
+  font-weight: var(--buttonitem-font-weight);
+  line-height: var(--buttonitem-line-height);
+}
+
+.shortcutHint {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  white-space: nowrap;
+}
+
+.shortcutRule {
+  width: 1px;
+  height: 14px;
+  background: oklch(1 0 0 / 0.18);
+}
+
+.shortcutHint kbd {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 22px;
+  height: 20px;
+  padding-inline: 6px;
+  border: none;
+  background: oklch(1 0 0 / 0.12);
+  color: inherit;
+  font: inherit;
+  font-variant-numeric: tabular-nums;
+}

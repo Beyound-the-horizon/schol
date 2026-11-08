@@ -1,0 +1,66 @@
+@import url("../../Styles/Tokens.css");
+
+.iconItem {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  cursor: pointer;
+  height: var(--size-32);
+  width: var(--size-32);
+  background: transparent;
+  color: var(--text-color-primary);
+  padding: 0;
+}
+
+.iconItem .dataitem {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.icon {
+  height: var(--icon-size-small);
+  width: var(--icon-size-small);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.icon svg {
+  width: var(--icon-size-small);
+  height: var(--icon-size-small);
+}
+
+.iconItem[data-size="24"] {
+  height: var(--size-24);
+  width: var(--size-24);
+}
+
+.iconItem[data-size="28"] {
+  height: var(--size-28);
+  width: var(--size-28);
+}
+
+.iconItem[data-size="40"] {
+  height: var(--size-40);
+  width: var(--size-40);
+}
+
+.iconItem[data-size="44"] {
+  height: var(--size-44);
+  width: var(--size-44);
+}
+
+.iconItem[data-state="active"],
+.iconItem[data-filled="true"] {
+  background: var(--bg-color-primary);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .iconItem:hover {
+    background: var(--bg-color-secondary);
+    color: var(--text-color-secondary);
+  }
+}

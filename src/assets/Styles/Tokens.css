@@ -21,6 +21,24 @@
   --rowitem-font-weight: var(--font-weight-intermediate);
   --rowitem-line-height: var(--line-height-24);
 
+
+  /* Button item text propertie */
+  --buttonitem-font-size: var(--font-size-13);
+  --buttonitem-font-weight: var(--font-weight-intermediate);
+  --buttonitem-line-height: 1.23;
+
+  /* Title */
+  --title-font-size: var(--font-size-24);
+  --title-line-height: 1.17;
+  --title-font-weight: var(--font-weight-intermediate);
+
+  /* Motion */
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --duration-press: 150ms;
+  --duration-hover: 150ms;
+  --duration-overlay: 200ms;
+
+
   /* -----Spacing----- */
   --spacing-0: var(--number-0);
   --spacing-1: var(--number-1);
@@ -37,6 +55,7 @@
   --spacing-24: var(--number-24);
   --spacing-32: var(--number-32);
   --spacing-48: var(--number-48);
+  --spacing-60: var(--number-60);
 
   /* -----Sizing----- */
   /* Icon */

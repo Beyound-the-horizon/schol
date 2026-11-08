@@ -1,0 +1,46 @@
+@import url("../../Styles/Tokens.css");
+
+.topBar {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  height: 52px;
+  padding: var(--padding-10);
+  background: var(--bg-base-color-light);
+}
+
+.topBarInner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+}
+
+.topBarActions {
+  display: flex;
+  align-items: center;
+}
+
+.searchBackdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  border: none;
+  padding: 0;
+  margin: 0;
+  background: transparent;
+  cursor: default;
+}
+
+.searchOverlay {
+  position: absolute;
+  top: var(--padding-10);
+  left: 50%;
+  z-index: 21;
+  width: min(600px, calc(100% - 24px));
+  transform: translateX(-50%);
+  transform-origin: top center;
+}

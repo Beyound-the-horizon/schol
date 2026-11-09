@@ -1,0 +1,1 @@
+"""Scholarship Platform API Package."""

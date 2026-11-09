@@ -1,0 +1,181 @@
+@import url("../Styles/Tokens.css");
+
+.scholarshipView {
+  min-height: 100dvh;
+  background: var(--bg-base-color-light);
+}
+
+.scholarshipContent {
+  width: min(1005px, calc(100% - 80px));
+  margin: 56px auto 80px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-48);
+}
+
+.breadcrumb,
+.scholarshipHeader,
+.scholarshipActions,
+.scholarshipBody,
+.detailRow,
+.detailValue,
+.stipendRow {
+  display: flex;
+  align-items: center;
+}
+
+.breadcrumb {
+  color: var(--text-color-tertiary);
+}
+
+.crumbDivider {
+  color: var(--color-border-tertiary);
+  font-size: var(--buttonitem-font-size);
+}
+
+.scholarshipHeader {
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: var(--spacing-24);
+}
+
+.scholarshipHeader h1 {
+  margin: 0;
+  max-width: 496px;
+  font-size: var(--title-font-size);
+  line-height: var(--title-line-height);
+  font-weight: var(--title-font-weight);
+  letter-spacing: -0.01em;
+  text-wrap: balance;
+  overflow-wrap: break-word;
+  color: var(--Black);
+}
+
+.scholarshipActions {
+  gap: var(--spacing-8);
+}
+
+.scholarshipBody {
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 83px;
+}
+
+.detailColumn {
+  width: min(496px, 100%);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-24);
+}
+
+.detailBlock {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-12);
+  padding-bottom: var(--padding-28);
+  border-bottom: 1px solid var(--color-border-primary);
+}
+
+.detailBlock.last {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.detailRow {
+  align-items: flex-start;
+  gap: var(--spacing-60);
+}
+
+.detailLabel {
+  width: 160px;
+  flex-shrink: 0;
+  color: var(--text-color-tertiary);
+  font-size: var(--buttonitem-font-size);
+  line-height: var(--buttonitem-line-height);
+  font-weight: var(--buttonitem-font-weight);
+}
+
+.detailValue {
+  color: var(--text-color-secondary);
+  font-size: var(--buttonitem-font-size);
+  line-height: var(--buttonitem-line-height);
+  flex-wrap: wrap;
+  gap: var(--spacing-6);
+}
+
+.fundingStack {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--spacing-8);
+}
+
+.deadlinePrimary {
+  color: var(--text-color-secondary);
+  padding-right: var(--padding-6);
+}
+
+.deadlineSecondary,
+.detailRow:first-child .detailValue {
+  color: var(--text-color-quaternary);
+}
+
+.stipendAmount {
+  color: var(--text-color-primary);
+  font-size: var(--buttonitem-font-size);
+}
+
+.courseColumn {
+  width: min(426px, 100%);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-16);
+}
+
+.courseList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+}
+
+.courseRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  height: var(--size-28);
+  border: none;
+  border-bottom: 1px solid #fafafa;
+  background: transparent;
+  color: var(--text-color-tertiary);
+  font-family: var(--rowitem-font);
+  font-size: var(--buttonitem-font-size);
+  padding: 0;
+}
+
+.coverageKicker,
+.coverageCopy {
+  margin: 0;
+  color: var(--text-color-quaternary);
+  font-size: var(--buttonitem-font-size);
+}
+
+.coverageColumn h2 {
+  margin: 4px 0 8px;
+  color: var(--text-color-secondary);
+  font-size: var(--buttonitem-font-size);
+  font-weight: var(--buttonitem-font-weight);
+}
+
+.formatList,
+.formatRow,
+.formatTags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-6);
+}
+
+.formatRow {
+  width: 100%;
+  align-items: center;
+}

@@ -1,0 +1,70 @@
+@import url("../Styles/Tokens.css");
+
+.homeView {
+  min-height: 100dvh;
+  background: var(--bg-base-color-light);
+}
+
+.homeContent {
+  width: min(1365px, calc(100% - 64px));
+  margin: var(--spacing-32) auto 0;
+  padding-bottom: var(--padding-12);
+  overflow-x: auto;
+  overscroll-behavior: contain;
+}
+
+.pagination .buttonItem,
+.stat .buttonItem,
+.pageInput,
+.pageTotal {
+  font-variant-numeric: tabular-nums;
+}
+
+.pageInput {
+  width: 52px;
+  background: transparent;
+  text-align: center;
+  padding-inline: var(--padding-4);
+}
+
+.pageTotal {
+  min-width: 40px;
+  text-align: start;
+  color: var(--text-color-secondary);
+  font-size: var(--buttonitem-font-size);
+  font-weight: var(--buttonitem-font-weight);
+  line-height: var(--buttonitem-line-height);
+  padding-inline: var(--padding-8);
+}
+
+.listToolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: var(--padding-12);
+}
+
+.pagination,
+.pageRange,
+.listStats,
+.stat {
+  display: flex;
+  align-items: center;
+}
+
+.listStats {
+  gap: var(--spacing-12);
+}
+
+.stat {
+  padding-right: var(--padding-12);
+  color: var(--text-color-secondary);
+  font-size: var(--buttonitem-font-size);
+  font-weight: var(--buttonitem-font-weight);
+  line-height: var(--buttonitem-line-height);
+}
+
+.pageDivider {
+  color: var(--text-color-secondary);
+  font-size: var(--buttonitem-font-size);
+}

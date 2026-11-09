@@ -1,0 +1,208 @@
+@import url("../../Styles/Tokens.css");
+
+.searchTrigger {
+  width: 194px;
+  color: var(--text-color-quaternary);
+  justify-content: flex-start;
+}
+
+.searchTrigger .text {
+  color: var(--text-color-quaternary);
+}
+
+.searchPanel {
+  width: min(600px, 100%);
+  max-width: 100%;
+  background: var(--bg-base-color-light);
+  border: var(--border-width-1) solid var(--bg-color-primary);
+  box-shadow: 0 4px 2px rgba(250, 250, 250, 0.82);
+  padding: 0 var(--padding-6);
+  overflow: hidden;
+  box-sizing: border-box;
+  transform-origin: top center;
+  overscroll-behavior: contain;
+  opacity: 1;
+  scale: 1;
+  transition-property: opacity, scale;
+  transition-duration: var(--duration-overlay);
+  transition-timing-function: var(--ease-out);
+}
+
+@starting-style {
+  .searchPanel {
+    opacity: 0;
+    scale: 0.95;
+  }
+}
+
+.searchPanelHeader {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-8);
+  padding-bottom: var(--padding-12);
+}
+
+.searchInput {
+  flex: 1 1 auto;
+  width: 0;
+  min-width: 0;
+  background: transparent;
+}
+
+.searchPanelHeader .iconItem {
+  position: relative;
+  z-index: 2;
+  flex-shrink: 0;
+}
+
+.searchBody,
+.searchResults {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-8);
+}
+
+.searchFilters {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-8) var(--spacing-12);
+  flex-wrap: wrap;
+  overflow: visible;
+}
+
+.filterOptions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+}
+
+.filterOption,
+.searchResultRow {
+  width: 100%;
+  min-height: var(--size-32);
+  border: none;
+  background: transparent;
+  text-align: start;
+  padding: 0 var(--padding-8);
+  color: var(--text-color-secondary);
+  font-family: var(--rowitem-font);
+  font-size: var(--buttonitem-font-size);
+  font-weight: var(--buttonitem-font-weight);
+  line-height: var(--buttonitem-line-height);
+  cursor: pointer;
+}
+
+.filterOption {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-8);
+  transition-property: background-color, color, scale;
+  transition-duration: var(--duration-press);
+  transition-timing-function: var(--ease-out);
+}
+
+.filterOption:not(:disabled):active,
+.filterPick:not(:disabled):active {
+  scale: 0.96;
+}
+
+.filterOption[data-state="active"] {
+  background: var(--bg-color-primary);
+  color: var(--text-color-primary);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .filterOption:hover,
+  .searchResultRow:hover {
+    background: var(--bg-color-primary);
+  }
+}
+
+.searchEmpty {
+  margin: 0;
+  padding: 0 var(--padding-8);
+  color: var(--text-color-quaternary);
+  font-size: var(--buttonitem-font-size);
+}
+
+.locationFilter {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-8);
+}
+
+.locationSearch {
+  position: relative;
+}
+
+.locationGhost {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  padding-inline: var(--padding-8);
+  font-family: var(--rowitem-font);
+  font-size: var(--buttonitem-font-size);
+  font-weight: var(--buttonitem-font-weight);
+  line-height: var(--buttonitem-line-height);
+  pointer-events: none;
+  white-space: nowrap;
+}
+
+.locationGhostTyped {
+  color: transparent;
+}
+
+.locationGhostRest {
+  color: var(--text-color-quaternary);
+}
+
+.locationSearch .fieldItem {
+  position: relative;
+  z-index: 1;
+  background: transparent;
+  color: var(--text-color-secondary);
+}
+
+.locationChips,
+.locationGrid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--spacing-8) var(--spacing-12);
+}
+
+.courseGrid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.locationGrid .buttonItem,
+.courseGrid .buttonItem {
+  width: 100%;
+  min-width: 0;
+  justify-content: flex-start;
+}
+
+.locationGrid .text,
+.courseGrid .text {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.locationChip {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: var(--size-24);
+  width: 120px;
+  padding-left: var(--padding-4);
+  padding-right: var(--padding-2);
+  border: none;
+  background: var(--bg-color-primary);
+  color: var(--text-color-secondary);
+  font-family: var(--rowitem-font);
+  font-size: var(--buttonitem-font-size);
+  cursor: pointer;
+}

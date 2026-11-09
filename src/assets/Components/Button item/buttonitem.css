@@ -1,0 +1,89 @@
+@import url("../../Styles/Tokens.css");
+
+.buttonItem {
+  box-sizing: border-box;
+  background: transparent;
+  color: var(--text-color-tertiary);
+  display: inline-flex;
+  flex-direction: row;
+  align-items: center;
+  height: var(--size-28);
+  gap: var(--spacing-6);
+  padding-inline: var(--padding-8);
+  border: none;
+  cursor: pointer;
+  font-family: var(--rowitem-font);
+  font-weight: var(--buttonitem-font-weight);
+  font-size: var(--buttonitem-font-size);
+}
+
+.buttonItem .dataitem {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-6);
+  min-width: 0;
+}
+
+.leftIcon,
+.rightIcon {
+  width: var(--icon-size-small);
+  height: var(--icon-size-small);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.leftIcon svg,
+.rightIcon svg {
+  width: var(--icon-size-small);
+  height: var(--icon-size-small);
+}
+
+.text {
+  line-height: var(--buttonitem-line-height);
+  white-space: nowrap;
+}
+
+.buttonItem[data-size="24"] {
+  height: var(--size-24);
+  padding-inline: var(--padding-8);
+}
+
+.buttonItem[data-size="28"] {
+  height: var(--size-28);
+}
+
+.buttonItem[data-size="32"] {
+  height: var(--size-32);
+}
+
+.buttonItem[data-size="40"] {
+  height: var(--size-40);
+}
+
+.buttonItem[data-size="44"] {
+  height: var(--size-44);
+}
+
+.buttonItem[data-state="active"] {
+  background: var(--bg-color-primary);
+  color: var(--text-color-primary);
+}
+
+.buttonItem[data-filled="true"] {
+  background: var(--text-color-primary);
+  color: var(--bg-base-color-light);
+}
+
+.buttonItem[data-static="true"] {
+  cursor: default;
+  pointer-events: none;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .buttonItem:hover:not([data-filled="true"]):not([data-static="true"]) {
+    background: var(--bg-color-primary);
+    color: var(--text-color-secondary);
+  }
+}

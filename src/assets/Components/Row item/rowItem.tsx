@@ -1,4 +1,5 @@
 import "./rowItem.css";
+import type { ButtonHTMLAttributes } from "react";
 
 type RowItemProps = {
   name: string;
@@ -10,7 +11,7 @@ type RowItemProps = {
   size?: 48;
   state?: "default" | "active";
   filled?: boolean;
-};
+} & ButtonHTMLAttributes<HTMLButtonElement>;
 
 export default function RowItem({
   name,
@@ -22,13 +23,17 @@ export default function RowItem({
   size = 48,
   state = "default",
   filled = false,
+  type = "button",
+  ...props
 }: RowItemProps) {
   return (
     <button
+      type={type}
       className="rowItem"
       data-size={size}
       data-state={state}
       data-filled={filled}
+      {...props}
     >
       <div className="mainContent">
         <span className="scholarshipname">{name}</span>

@@ -29,6 +29,7 @@ export type Scholarship = {
   eligibility: string;
   deadline: string;
   source?: string;
+  official_url?: string;
   deadlineDate?: string;
   daysLeft?: string;
   eligibilityDetail?: string;

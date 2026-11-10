@@ -1,6 +1,8 @@
 from datetime import datetime, timezone
+import os
 import re
 from typing import Any
+import httpx
 from sqlalchemy import select
 
 
@@ -22,25 +24,57 @@ def normalize_name(name: str) -> str:
 
 
 def get_existing_scholarships() -> list[dict[str, Any]]:
-    """Retrieve all existing scholarships from Supabase."""
-    with SessionLocal() as session:
-        query = select(
-            Scholarship.id,
-            Scholarship.name,
-            Scholarship.official_url,
-            Scholarship.last_verified_at,
-        )
-        results = session.execute(query).all()
-        return [
-            {
-                "id": row.id,
-                "name": row.name,
-                "official_url": row.official_url,
-                "last_verified_at": row.last_verified_at,
-                "normalized_name": normalize_name(row.name),
-            }
-            for row in results
-        ]
+    """Retrieve all existing scholarships for candidate deduplication.
+    
+    Attempts to read via public API endpoint /api/v1/scholarships,
+    with graceful fallback to direct database session if available.
+    """
+    api_url = os.getenv("API_BASE_URL", "http://127.0.0.1:8000/api/v1").rstrip("/")
+    try:
+        with httpx.Client(timeout=5.0) as client:
+            resp = client.get(f"{api_url}/scholarships", params={"limit": 100})
+            if resp.status_code == 200:
+                items = resp.json()
+                if isinstance(items, dict) and "items" in items:
+                    items = items["items"]
+                return [
+                    {
+                        "id": item.get("id"),
+                        "name": item.get("name", ""),
+                        "official_url": item.get("official_url"),
+                        "last_verified_at": item.get("last_verified_at"),
+                        "normalized_name": normalize_name(item.get("name", "")),
+                    }
+                    for item in items
+                ]
+    except Exception:
+        pass
+
+    # Fallback to direct DB read if SessionLocal is available
+    if SessionLocal is not None:
+        try:
+            with SessionLocal() as session:
+                query = select(
+                    Scholarship.id,
+                    Scholarship.name,
+                    Scholarship.official_url,
+                    Scholarship.last_verified_at,
+                )
+                results = session.execute(query).all()
+                return [
+                    {
+                        "id": row.id,
+                        "name": row.name,
+                        "official_url": row.official_url,
+                        "last_verified_at": row.last_verified_at,
+                        "normalized_name": normalize_name(row.name),
+                    }
+                    for row in results
+                ]
+        except Exception:
+            pass
+
+    return []
 
 
 def select_daily_batch(catalog_items: list[str], limit: int = 5) -> list[dict[str, Any]]:

@@ -54,6 +54,9 @@ jobs:
 
       - name: Run Autonomous Scholarship Agents
         env:
+          # Force v1beta for Google GenAI SDK (enables developer/system instructions)
+          GOOGLE_GENAI_API_VERSION: 'v1beta'
+
           # Gemini AI API Key
           GOOGLE_GEMINI_API: ${{ secrets.GOOGLE_GEMINI_API }}
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}

@@ -8,13 +8,18 @@ from tenacity import retry, stop_after_attempt, wait_exponential
 
 load_dotenv(find_dotenv())
 
+# Enforce v1beta globally for the Google GenAI SDK to enable system instructions and search tools
+os.environ["GOOGLE_GENAI_API_VERSION"] = "v1beta"
 
 api_key = os.getenv("GOOGLE_GEMINI_API") or os.getenv("GEMINI_API_KEY")
 if not api_key:
     raise ValueError("GOOGLE_GEMINI_API is missing from .env")
 
-# Specify v1beta API version to enable developer/system instructions and search grounding tools
-client = genai.Client(api_key=api_key, http_options={"api_version": "v1beta"})
+# Specify v1beta API version explicitly in HttpOptions
+client = genai.Client(
+    api_key=api_key,
+    http_options=types.HttpOptions(api_version="v1beta"),
+)
 
 
 RESEARCH_SYSTEM_PROMPT = """You are an elite, meticulous academic scholarship research agent.

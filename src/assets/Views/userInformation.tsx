@@ -5,7 +5,7 @@ import IconItem from "../Components/Icon item/iconItem";
 import FieldItem from "../Components/Field item/fieldItem";
 import ButtonItem from "../Components/Button item/buttonItem";
 import DocumentPreview from "../Components/Document preview/documentPreview";
-import { nationalities } from "../../data/scholarships";
+import { nationalities, courseStudiedOptions } from "../../data/scholarships";
 import {
   connectGoogleAccount,
   disconnectGoogleAccount,
@@ -65,6 +65,7 @@ export default function UserInformation({
   );
   const [connecting, setConnecting] = useState(false);
   const [nationality, setNationality] = useState("");
+  const [courseStudied, setCourseStudied] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
   const filesRef = useRef(files);
   filesRef.current = files;
@@ -151,6 +152,10 @@ export default function UserInformation({
     item.toLowerCase().startsWith(nationality.trim().toLowerCase())
   );
 
+  const courseStudiedSuggestion = courseStudiedOptions.find((item) =>
+    item.toLowerCase().startsWith(courseStudied.trim().toLowerCase())
+  );
+
   return (
     <div className="userInformation">
       <input
@@ -224,6 +229,7 @@ export default function UserInformation({
                 </div>
               ) : (
                 <ButtonItem
+                  className="gmailConnectButton"
                   size={32}
                   text={connecting ? "Connecting..." : "Connect Gmail"}
                   onClick={() => void onConnect()}
@@ -255,7 +261,40 @@ export default function UserInformation({
             </div>
             <div className="fieldGroup wide">
               <span className="fieldLabel">Course studied</span>
-              <FieldItem placeholder="B.eng Mechatronics engineering" />
+              <div className="courseStudiedSearch">
+                {courseStudied && courseStudiedSuggestion ? (
+                  <span className="locationGhost" aria-hidden="true">
+                    <span className="locationGhostTyped">{courseStudied}</span>
+                    <span className="locationGhostRest">
+                      {courseStudiedSuggestion.slice(courseStudied.length)}
+                    </span>
+                  </span>
+                ) : null}
+                <FieldItem
+                  placeholder="B.eng Mechatronics Engineering"
+                  autoComplete="off"
+                  list="course-studied-options"
+                  value={courseStudied}
+                  aria-label="Course studied"
+                  aria-autocomplete="list"
+                  onChange={(event) => setCourseStudied(event.target.value)}
+                  onKeyDown={(event) => {
+                    if (
+                      (event.key === "Tab" || event.key === "Enter") &&
+                      courseStudied &&
+                      courseStudiedSuggestion
+                    ) {
+                      event.preventDefault();
+                      setCourseStudied(courseStudiedSuggestion);
+                    }
+                  }}
+                />
+                <datalist id="course-studied-options">
+                  {courseStudiedOptions.map((opt) => (
+                    <option key={opt} value={opt} />
+                  ))}
+                </datalist>
+              </div>
             </div>
           </div>
         </section>

@@ -45,6 +45,21 @@ export default function App() {
     [filters]
   );
 
+  const PAGE_SIZE = 10;
+  const pageScholarships = useMemo(() => {
+    const total = visibleScholarships.length;
+    if (total === 0) return [];
+    const startIndex = ((page - 1) * PAGE_SIZE) % total;
+    const result: typeof visibleScholarships = [];
+    for (let i = 0; i < PAGE_SIZE; i++) {
+      const item = visibleScholarships[(startIndex + i) % total];
+      if (item) {
+        result.push(item);
+      }
+    }
+    return result;
+  }, [visibleScholarships, page]);
+
   const bookmarkedScholarships = useMemo(
     () =>
       bookmarkedIds
@@ -189,7 +204,7 @@ export default function App() {
         />
       ) : (
         <HomeView
-          scholarships={visibleScholarships}
+          scholarships={pageScholarships}
           page={page}
           totalPages={totalPages}
           ongoingCount="12,000"

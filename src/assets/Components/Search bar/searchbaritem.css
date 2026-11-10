@@ -165,15 +165,23 @@
   color: var(--text-color-secondary);
 }
 
-.locationChips,
+.locationChips {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--spacing-6);
+  padding-top: var(--padding-2);
+  padding-bottom: var(--padding-4);
+}
+
 .locationGrid {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
   gap: var(--spacing-8) var(--spacing-12);
 }
 
 .courseGrid {
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
 }
 
 .locationGrid .buttonItem,
@@ -192,17 +200,34 @@
 }
 
 .locationChip {
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  justify-content: space-between;
+  gap: var(--spacing-6);
   height: var(--size-24);
-  width: 120px;
-  padding-left: var(--padding-4);
-  padding-right: var(--padding-2);
+  width: auto;
+  max-width: 100%;
+  padding-left: var(--padding-8);
+  padding-right: var(--padding-6);
   border: none;
+  border-radius: var(--radius-0);
   background: var(--bg-color-primary);
   color: var(--text-color-secondary);
   font-family: var(--rowitem-font);
   font-size: var(--buttonitem-font-size);
+  white-space: nowrap;
   cursor: pointer;
+  transition: background-color var(--duration-hover) var(--ease-out),
+    color var(--duration-hover) var(--ease-out);
+}
+
+.locationChip:hover {
+  background: var(--color-border-primary);
+  color: var(--text-color-primary);
+}
+
+.locationChip span {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 240px;
 }

@@ -28,8 +28,6 @@ type HomeViewProps = {
   filters?: Filters;
   onFiltersChange?: (filters: Filters) => void;
   onClearFilters?: () => void;
-  searchQuery?: string;
-  onSearchQueryChange?: (query: string) => void;
 };
 
 export default function HomeView({
@@ -51,8 +49,6 @@ export default function HomeView({
   filters,
   onFiltersChange,
   onClearFilters,
-  searchQuery,
-  onSearchQueryChange,
 }: HomeViewProps) {
   const [pageDraft, setPageDraft] = useState(String(page));
 
@@ -82,8 +78,6 @@ export default function HomeView({
         filters={filters}
         onFiltersChange={onFiltersChange}
         onClearFilters={onClearFilters}
-        searchQuery={searchQuery}
-        onSearchQueryChange={onSearchQueryChange}
       />
 
       <section className="homeContent">

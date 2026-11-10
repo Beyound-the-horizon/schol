@@ -36,8 +36,6 @@ type SearchbarItemProps = {
   filters?: Filters;
   onFiltersChange?: (filters: Filters) => void;
   onClearFilters?: () => void;
-  searchQuery?: string;
-  onSearchQueryChange?: (query: string) => void;
 };
 
 const FILTERS: { key: FilterKey; label: string }[] = [
@@ -175,19 +173,8 @@ export default function searchbarItem({
   filters,
   onFiltersChange,
   onClearFilters,
-  searchQuery,
-  onSearchQueryChange,
 }: SearchbarItemProps) {
-  const [internalQuery, setInternalQuery] = useState("");
-  const query = searchQuery !== undefined ? searchQuery : internalQuery;
-  function handleQueryChange(val: string) {
-    if (onSearchQueryChange) {
-      onSearchQueryChange(val);
-    } else {
-      setInternalQuery(val);
-    }
-  }
-
+  const [query, setQuery] = useState("");
   const [locationQuery, setLocationQuery] = useState("");
   const [courseQuery, setCourseQuery] = useState("");
   const [activeFilter, setActiveFilter] = useState<FilterKey>("eligibility");
@@ -254,7 +241,7 @@ export default function searchbarItem({
           placeholder="Search for scholarships..."
           value={query}
           autoFocus
-          onChange={(event) => handleQueryChange(event.target.value)}
+          onChange={(event) => setQuery(event.target.value)}
         />
         <IconItem
           size={32}

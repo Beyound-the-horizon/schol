@@ -15,8 +15,6 @@ type TopBarProps = {
   filters?: Filters;
   onFiltersChange?: (filters: Filters) => void;
   onClearFilters?: () => void;
-  searchQuery?: string;
-  onSearchQueryChange?: (query: string) => void;
 };
 
 export default function TopBar({
@@ -30,8 +28,6 @@ export default function TopBar({
   filters,
   onFiltersChange,
   onClearFilters,
-  searchQuery,
-  onSearchQueryChange,
 }: TopBarProps) {
   return (
     <header className="topBar">
@@ -42,8 +38,6 @@ export default function TopBar({
           onOpen={onOpenSearch}
           filters={filters}
           onFiltersChange={onFiltersChange}
-          searchQuery={searchQuery}
-          onSearchQueryChange={onSearchQueryChange}
         />
         <div className="topBarActions">
           <IconItem
@@ -78,8 +72,6 @@ export default function TopBar({
               filters={filters}
               onFiltersChange={onFiltersChange}
               onClearFilters={onClearFilters}
-              searchQuery={searchQuery}
-              onSearchQueryChange={onSearchQueryChange}
             />
           </div>
         </>

@@ -8,7 +8,7 @@ type FieldItemProps = InputHTMLAttributes<HTMLInputElement> & {
 
 export default function fielditem({
   size = 32,
-  tone = "placeholder",
+  tone,
   className,
   ...props
 }: FieldItemProps) {

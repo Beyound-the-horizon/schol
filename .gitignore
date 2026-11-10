@@ -71,3 +71,15 @@ coverage.xml
 *.py,cover
 .hypothesis/
 
+
+
+.venv
+
+\.venv
+
+\.env
+
+.env
+.venv/
+__pycache__/
+*.py[cod]

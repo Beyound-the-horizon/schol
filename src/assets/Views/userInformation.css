@@ -90,13 +90,30 @@
   gap: var(--spacing-4);
 }
 
-.gmailConnected {
+.gmailConnected,
+.gmailConnectButton {
   justify-content: space-between;
   min-height: var(--size-32);
+  height: var(--size-32);
   padding-inline: var(--padding-8);
   background: var(--bg-color-primary);
   color: var(--text-color-secondary);
   font-size: var(--buttonitem-font-size);
+}
+
+.gmailConnectButton {
+  width: 100%;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  color: var(--text-color-quaternary);
+  cursor: pointer;
+}
+
+.gmailConnectButton:hover {
+  background: var(--bg-color-primary);
+  color: var(--text-color-secondary);
 }
 
 .documentHint {
@@ -198,11 +215,15 @@
   }
 }
 
-.nationalitySearch {
+.nationalitySearch,
+.courseStudiedSearch {
   position: relative;
+  background: var(--bg-color-primary);
+  width: 100%;
 }
 
-.nationalitySearch .locationGhost {
+.nationalitySearch .locationGhost,
+.courseStudiedSearch .locationGhost {
   position: absolute;
   inset: 0;
   display: flex;
@@ -214,15 +235,18 @@
   pointer-events: none;
 }
 
-.nationalitySearch .locationGhostTyped {
+.nationalitySearch .locationGhostTyped,
+.courseStudiedSearch .locationGhostTyped {
   color: transparent;
 }
 
-.nationalitySearch .locationGhostRest {
+.nationalitySearch .locationGhostRest,
+.courseStudiedSearch .locationGhostRest {
   color: var(--text-color-quaternary);
 }
 
-.nationalitySearch .fieldItem {
+.nationalitySearch .fieldItem,
+.courseStudiedSearch .fieldItem {
   position: relative;
   z-index: 1;
   background: transparent;

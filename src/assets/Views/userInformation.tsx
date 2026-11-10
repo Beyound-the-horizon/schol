@@ -5,7 +5,7 @@ import IconItem from "../Components/Icon item/iconItem";
 import FieldItem from "../Components/Field item/fieldItem";
 import ButtonItem from "../Components/Button item/buttonItem";
 import DocumentPreview from "../Components/Document preview/documentPreview";
-import { nationalities } from "../../data/scholarships";
+import { nationalities, courseStudiedOptions } from "../../data/scholarships";
 import {
   connectGoogleAccount,
   disconnectGoogleAccount,
@@ -59,74 +59,13 @@ export default function UserInformation({
   const [files, setFiles] = useState<Record<string, SlotFile | null>>({});
   const [viewer, setViewer] = useState<SlotFile | null>(null);
   const [pendingSlot, setPendingSlot] = useState<string | null>(null);
-  const [firstName, setFirstName] = useState(() => {
-    try {
-      return localStorage.getItem("schol.profile.firstName") || "";
-    } catch {
-      return "";
-    }
-  });
-  const [middleName, setMiddleName] = useState(() => {
-    try {
-      return localStorage.getItem("schol.profile.middleName") || "";
-    } catch {
-      return "";
-    }
-  });
-  const [lastName, setLastName] = useState(() => {
-    try {
-      return localStorage.getItem("schol.profile.lastName") || "";
-    } catch {
-      return "";
-    }
-  });
-  const [scale, setScale] = useState(() => {
-    try {
-      return localStorage.getItem("schol.profile.scale") || "5.0";
-    } catch {
-      return "5.0";
-    }
-  });
-  const [cgpa, setCgpa] = useState(() => {
-    try {
-      return localStorage.getItem("schol.profile.cgpa") || "";
-    } catch {
-      return "";
-    }
-  });
-  const [courseStudied, setCourseStudied] = useState(() => {
-    try {
-      return localStorage.getItem("schol.profile.courseStudied") || "";
-    } catch {
-      return "";
-    }
-  });
+  const [scale, setScale] = useState("5.0");
   const [account, setAccount] = useState<GoogleAccount | null>(() =>
     loadStoredAccount()
   );
   const [connecting, setConnecting] = useState(false);
-  const [nationality, setNationality] = useState(() => {
-    try {
-      return localStorage.getItem("schol.profile.nationality") || "";
-    } catch {
-      return "";
-    }
-  });
-
-  // Sync profile details to localStorage (local only, never sent to server)
-  useEffect(() => {
-    try {
-      localStorage.setItem("schol.profile.firstName", firstName);
-      localStorage.setItem("schol.profile.middleName", middleName);
-      localStorage.setItem("schol.profile.lastName", lastName);
-      localStorage.setItem("schol.profile.scale", scale);
-      localStorage.setItem("schol.profile.cgpa", cgpa);
-      localStorage.setItem("schol.profile.courseStudied", courseStudied);
-      localStorage.setItem("schol.profile.nationality", nationality);
-    } catch {
-      // Ignore storage errors in restricted contexts
-    }
-  }, [firstName, middleName, lastName, scale, cgpa, courseStudied, nationality]);
+  const [nationality, setNationality] = useState("");
+  const [courseStudied, setCourseStudied] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
   const filesRef = useRef(files);
   filesRef.current = files;
@@ -213,6 +152,10 @@ export default function UserInformation({
     item.toLowerCase().startsWith(nationality.trim().toLowerCase())
   );
 
+  const courseStudiedSuggestion = courseStudiedOptions.find((item) =>
+    item.toLowerCase().startsWith(courseStudied.trim().toLowerCase())
+  );
+
   return (
     <div className="userInformation">
       <input
@@ -237,33 +180,12 @@ export default function UserInformation({
 
         <section className="infoSection">
           <h2>Personal</h2>
-          <p className="documentHint">
-            Personal information and nationality are stored locally in your browser and never synchronized to a server.
-          </p>
           <div className="fieldGroup">
             <span className="fieldLabel">Name</span>
             <div className="nameRow">
-              <FieldItem
-                placeholder="First"
-                autoComplete="given-name"
-                name="given-name"
-                value={firstName}
-                onChange={(event) => setFirstName(event.target.value)}
-              />
-              <FieldItem
-                placeholder="Middle"
-                autoComplete="additional-name"
-                name="additional-name"
-                value={middleName}
-                onChange={(event) => setMiddleName(event.target.value)}
-              />
-              <FieldItem
-                placeholder="Last"
-                autoComplete="family-name"
-                name="family-name"
-                value={lastName}
-                onChange={(event) => setLastName(event.target.value)}
-              />
+              <FieldItem placeholder="First" autoComplete="given-name" name="given-name" />
+              <FieldItem placeholder="Middle" autoComplete="additional-name" name="additional-name" />
+              <FieldItem placeholder="Last" autoComplete="family-name" name="family-name" />
             </div>
           </div>
           <div className="splitRow">
@@ -307,6 +229,7 @@ export default function UserInformation({
                 </div>
               ) : (
                 <ButtonItem
+                  className="gmailConnectButton"
                   size={32}
                   text={connecting ? "Connecting..." : "Connect Gmail"}
                   onClick={() => void onConnect()}
@@ -318,19 +241,11 @@ export default function UserInformation({
 
         <section className="infoSection">
           <h2>Academic</h2>
-          <p className="documentHint">
-            CGPA, grading scale, and coursework are saved strictly to your local device.
-          </p>
           <div className="splitRow">
             <div className="fieldGroup narrow">
               <span className="fieldLabel">Cgpa</span>
               <div className="cgpaRow">
-                <FieldItem
-                  placeholder="3.80"
-                  inputMode="decimal"
-                  value={cgpa}
-                  onChange={(event) => setCgpa(event.target.value)}
-                />
+                <FieldItem placeholder="3.80" inputMode="decimal" />
                 <div className="scalePicker" role="group" aria-label="CGPA scale">
                   {SCALES.map((value) => (
                     <ButtonItem
@@ -346,11 +261,40 @@ export default function UserInformation({
             </div>
             <div className="fieldGroup wide">
               <span className="fieldLabel">Course studied</span>
-              <FieldItem
-                placeholder="B.eng Mechatronics engineering"
-                value={courseStudied}
-                onChange={(event) => setCourseStudied(event.target.value)}
-              />
+              <div className="courseStudiedSearch">
+                {courseStudied && courseStudiedSuggestion ? (
+                  <span className="locationGhost" aria-hidden="true">
+                    <span className="locationGhostTyped">{courseStudied}</span>
+                    <span className="locationGhostRest">
+                      {courseStudiedSuggestion.slice(courseStudied.length)}
+                    </span>
+                  </span>
+                ) : null}
+                <FieldItem
+                  placeholder="B.eng Mechatronics Engineering"
+                  autoComplete="off"
+                  list="course-studied-options"
+                  value={courseStudied}
+                  aria-label="Course studied"
+                  aria-autocomplete="list"
+                  onChange={(event) => setCourseStudied(event.target.value)}
+                  onKeyDown={(event) => {
+                    if (
+                      (event.key === "Tab" || event.key === "Enter") &&
+                      courseStudied &&
+                      courseStudiedSuggestion
+                    ) {
+                      event.preventDefault();
+                      setCourseStudied(courseStudiedSuggestion);
+                    }
+                  }}
+                />
+                <datalist id="course-studied-options">
+                  {courseStudiedOptions.map((opt) => (
+                    <option key={opt} value={opt} />
+                  ))}
+                </datalist>
+              </div>
             </div>
           </div>
         </section>

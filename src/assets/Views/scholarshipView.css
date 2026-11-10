@@ -179,3 +179,211 @@
   width: 100%;
   align-items: center;
 }
+
+.documentsLabelWithInfo {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-6);
+}
+
+.infoIconButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: var(--text-color-tertiary);
+  border-radius: 50%;
+  cursor: pointer;
+  transition: color var(--duration-hover) var(--ease-out),
+    background-color var(--duration-hover) var(--ease-out);
+}
+
+.infoIconButton:hover {
+  color: var(--text-color-primary);
+  background: var(--bg-color-primary);
+}
+
+.infoIconButton:focus-visible {
+  outline: 1.5px solid var(--text-color-primary);
+  outline-offset: 1px;
+}
+
+.documentsHoverCard {
+  background: var(--bg-base-color-light);
+  border: 1px solid var(--color-border-primary);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+  border-radius: var(--radius-0);
+  padding: var(--padding-12);
+  font-family: var(--rowitem-font);
+  width: 280px;
+}
+
+.hoverCardTitle {
+  font-size: var(--buttonitem-font-size);
+  font-weight: var(--font-weight-medium-intermediate);
+  color: var(--text-color-primary);
+  margin-bottom: var(--spacing-8);
+}
+
+.hoverCardContentList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-6);
+}
+
+.hoverCardRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-12);
+  font-size: var(--buttonitem-font-size);
+}
+
+.hoverCardDoc {
+  color: var(--text-color-secondary);
+  font-weight: var(--buttonitem-font-weight);
+}
+
+.hoverCardBadgeGroup {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-4);
+}
+
+.hoverCardFormatBadge {
+  font-size: 11px;
+  background: var(--bg-color-primary);
+  color: var(--text-color-secondary);
+  padding: 1px 6px;
+  font-family: var(--rowitem-font);
+}
+
+.hoverCardMaxSize {
+  font-size: 11px;
+  color: var(--text-color-quaternary);
+}
+
+.documentNamesList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+}
+
+.documentNameItem {
+  color: var(--text-color-secondary);
+  font-size: var(--buttonitem-font-size);
+  line-height: var(--buttonitem-line-height);
+}
+
+.limitationStack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+}
+
+.limitationTitle {
+  color: var(--text-color-primary);
+  font-size: var(--buttonitem-font-size);
+  font-weight: var(--font-weight-medium-intermediate);
+}
+
+.limitationNote {
+  margin: 0;
+  color: var(--text-color-quaternary);
+  font-size: var(--buttonitem-font-size);
+  line-height: 1.45;
+  max-width: 360px;
+}
+
+.courseAccordion {
+  width: 100%;
+}
+
+.courseAccordionTrigger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  min-height: var(--size-28);
+  border: none;
+  border-bottom: 1px solid #fafafa;
+  background: transparent;
+  color: var(--text-color-tertiary);
+  font-family: var(--rowitem-font);
+  font-size: var(--buttonitem-font-size);
+  padding: var(--padding-6) 0;
+  cursor: pointer;
+  text-align: start;
+  transition: color var(--duration-hover) var(--ease-out);
+}
+
+.courseAccordionTrigger:hover {
+  color: var(--text-color-primary);
+}
+
+.courseAccordionTrigger:focus-visible {
+  outline: 1.5px solid var(--text-color-primary);
+  outline-offset: 1px;
+}
+
+.courseAccordionTrigger[data-state="open"] {
+  color: var(--text-color-primary);
+}
+
+.courseTriggerText {
+  flex: 1;
+  text-align: start;
+}
+
+.courseAccordionContent {
+  overflow: hidden;
+  padding: var(--padding-8) 0 var(--padding-16) 0;
+  border-bottom: 1px solid var(--color-border-primary);
+}
+
+.courseDetailsBody {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-8);
+  font-family: var(--rowitem-font);
+}
+
+.courseParagraph {
+  margin: 0;
+  font-size: var(--buttonitem-font-size);
+  line-height: 1.45;
+  color: var(--text-color-secondary);
+}
+
+.courseParagraph strong {
+  color: var(--text-color-primary);
+  font-weight: var(--font-weight-medium-intermediate);
+}
+
+.courseUrlParagraph {
+  margin-top: var(--spacing-4);
+}
+
+.courseUrlLink {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-4);
+  color: var(--text-color-primary);
+  font-size: var(--buttonitem-font-size);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+
+.courseUrlLink:hover {
+  color: var(--Black);
+}
+
+.courseUrlLink:focus-visible {
+  outline: 1.5px solid var(--text-color-primary);
+  outline-offset: 1px;
+}

@@ -6,7 +6,7 @@
   height: var(--size-32);
   border: none;
   background: var(--bg-color-primary);
-  color: var(--text-color-quaternary);
+  color: var(--text-color-primary);
   padding-inline: var(--padding-8);
   font-family: var(--rowitem-font);
   font-weight: var(--buttonitem-font-weight);
@@ -17,6 +17,15 @@
   appearance: none;
 }
 
+.fieldItem::placeholder {
+  color: var(--text-color-quaternary);
+}
+
+.fieldItem:placeholder-shown:not(:focus) {
+  color: var(--text-color-quaternary);
+}
+
+.fieldItem:focus,
 .fieldItem:not(:placeholder-shown),
 .fieldItem[data-tone="value"] {
   color: var(--text-color-primary);
@@ -39,10 +48,6 @@
 }
 
 .fieldItem[data-tone="placeholder"] {
-  color: var(--text-color-quaternary);
-}
-
-.fieldItem::placeholder {
   color: var(--text-color-quaternary);
 }
 

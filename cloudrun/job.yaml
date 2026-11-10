@@ -1,0 +1,57 @@
+apiVersion: run.googleapis.com/v1
+kind: Job
+metadata:
+  name: autonomous-scholarship-agent
+  annotations:
+    run.googleapis.com/launch-stage: BETA
+spec:
+  template:
+    spec:
+      # Mitigate concurrency warnings: exactly 1 task, 1 parallelism, 1 retry
+      parallelism: 1
+      taskCount: 1
+      backoffLimit: 1
+      template:
+        spec:
+          timeoutSeconds: 900 # 15 minutes max execution
+          containers:
+            - image: gcr.io/PROJECT_ID/autonomous-scholarship-agent:latest
+              resources:
+                limits:
+                  cpu: "1"
+                  memory: "1Gi"
+              env:
+                - name: AGENT_DELAY_SECONDS
+                  value: "3"
+                - name: AGENT_ERROR_DELAY_SECONDS
+                  value: "5"
+                - name: GOOGLE_GEMINI_API
+                  valueFrom:
+                    secretKeyRef:
+                      name: GOOGLE_GEMINI_API
+                      key: latest
+                - name: user
+                  valueFrom:
+                    secretKeyRef:
+                      name: DB_USER
+                      key: latest
+                - name: password
+                  valueFrom:
+                    secretKeyRef:
+                      name: DB_PASSWORD
+                      key: latest
+                - name: host
+                  valueFrom:
+                    secretKeyRef:
+                      name: DB_HOST
+                      key: latest
+                - name: port
+                  value: "5432"
+                - name: dbname
+                  value: "postgres"
+                - name: SCHOLARSHIP_CATALOG_URL
+                  valueFrom:
+                    secretKeyRef:
+                      name: SCHOLARSHIP_CATALOG_URL
+                      key: latest
+

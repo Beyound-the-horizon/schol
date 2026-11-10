@@ -1,0 +1,88 @@
+name: Autonomous Scholarship Agents
+
+on:
+  # Daily scheduled trigger (06:00 UTC = 7:00 AM CET / 1:00 AM EST)
+  schedule:
+    - cron: '0 6 * * *'
+
+  # Manual on-demand trigger with parameter controls
+  workflow_dispatch:
+    inputs:
+      limit:
+        description: 'Number of scholarships to process in this batch'
+        required: false
+        default: '5'
+        type: string
+      doc_url:
+        description: 'Custom Google Doc catalog URL (leave empty to use default catalog)'
+        required: false
+        default: ''
+        type: string
+      force:
+        description: 'Bypass concurrency lock check'
+        required: false
+        default: false
+        type: boolean
+
+# CRITICAL CONCURRENCY GUARD:
+# Strictly prevents overlapping runs from firing in parallel.
+# If a manual trigger is initiated while a schedule is running, it queues instead of colliding.
+concurrency:
+  group: autonomous-scholarship-pipeline-lock
+  cancel-in-progress: false
+
+jobs:
+  run-autonomous-cycle:
+    name: Execute Autonomous Research & Upsert
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run Autonomous Scholarship Agents
+        env:
+          # Gemini AI API Key
+          GOOGLE_GEMINI_API: ${{ secrets.GOOGLE_GEMINI_API }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+
+          # Supabase PostgreSQL Database Credentials
+          user: ${{ secrets.DB_USER }}
+          password: ${{ secrets.DB_PASSWORD }}
+          host: ${{ secrets.DB_HOST }}
+          port: ${{ secrets.DB_PORT || '5432' }}
+          dbname: ${{ secrets.DB_NAME || 'postgres' }}
+
+          # Curated Google Doc Catalog URL (Optional override)
+          SCHOLARSHIP_CATALOG_URL: ${{ secrets.SCHOLARSHIP_CATALOG_URL }}
+
+          # API Rate Limit & Pacing Controls
+          AGENT_DELAY_SECONDS: '3'
+          AGENT_ERROR_DELAY_SECONDS: '5'
+        run: |
+          # Build runner arguments dynamically based on trigger type
+          RUN_ARGS="--limit ${{ github.event.inputs.limit || '5' }}"
+
+          if [ -n "${{ github.event.inputs.doc_url }}" ]; then
+            RUN_ARGS="$RUN_ARGS --doc-url \"${{ github.event.inputs.doc_url }}\""
+          fi
+
+          if [ "${{ github.event.inputs.force }}" = "true" ]; then
+            RUN_ARGS="$RUN_ARGS --force"
+          fi
+
+          echo "Executing: python core/runner.py $RUN_ARGS"
+          python core/runner.py $RUN_ARGS
+

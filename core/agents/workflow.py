@@ -1,3 +1,4 @@
+import os
 import time
 from typing import Any
 
@@ -93,14 +94,17 @@ def run_autonomous_cycle(doc_url: str | None = None, limit: int = 5) -> dict[str
                 "official_url": write_result.get("official_url"),
             })
 
-            
+            # Rate limit pacing between items to prevent hitting Gemini RPM limits
+            delay = int(os.getenv("AGENT_DELAY_SECONDS", "3"))
             if idx < len(batch):
-                time.sleep(2)
+                time.sleep(delay)
 
         except Exception as e:
             failed_count += 1
             print(f"  [ERROR] Error processing '{target_name}': {type(e).__name__}: {e}")
             results.append({"name": target_name, "status": "error", "error": str(e)})
+            # Cooling off on error to recover from any API quota or network blip
+            time.sleep(int(os.getenv("AGENT_ERROR_DELAY_SECONDS", "5")))
 
     summary = {
         "total_catalog": len(catalog),

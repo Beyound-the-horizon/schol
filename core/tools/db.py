@@ -1,7 +1,8 @@
 from datetime import datetime, timezone
+from contextlib import contextmanager
 import re
 from typing import Any
-from sqlalchemy import select
+from sqlalchemy import select, text
 
 
 try:
@@ -12,6 +13,44 @@ except ImportError:
     from db import SessionLocal
     from model import Scholarship
     from schemas import ScholarshipCreate
+
+# Unique 64-bit integer identifier for the scholarship agent pipeline advisory lock
+SCHOLARSHIP_RUNNER_LOCK_ID = 884729103
+
+
+@contextmanager
+def acquire_run_lock():
+    """
+    Acquire a PostgreSQL session-level advisory lock to guarantee only one
+    autonomous agent cycle runs at any given moment across all deployment targets
+    (GitHub Actions, Cloud Run Jobs, or manual invocations).
+    
+    If the lock cannot be acquired immediately (another process is currently running),
+    it yields False. If acquired, yields True and automatically unlocks on exit.
+    """
+    session = SessionLocal()
+    has_lock = False
+    try:
+        lock_acquired = session.execute(
+            text("SELECT pg_try_advisory_lock(:lock_id)"),
+            {"lock_id": SCHOLARSHIP_RUNNER_LOCK_ID},
+        ).scalar()
+        has_lock = bool(lock_acquired)
+        yield has_lock
+    except Exception as e:
+        print(f"[Lock] Advisory lock check encountered an error: {e}. Proceeding with fail-open safety.")
+        yield True
+    finally:
+        if has_lock:
+            try:
+                session.execute(
+                    text("SELECT pg_advisory_unlock(:lock_id)"),
+                    {"lock_id": SCHOLARSHIP_RUNNER_LOCK_ID},
+                )
+                session.commit()
+            except Exception:
+                pass
+        session.close()
 
 
 def normalize_name(name: str) -> str:

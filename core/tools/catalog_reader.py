@@ -35,7 +35,7 @@ def convert_to_export_url(url: str) -> str:
 def parse_numbered_list(text: str) -> list[str]:
     """
     Parse a numbered or bulleted list of scholarships from plain text.
-
+    Cleans leading numbers, bullet markers, quotation marks, and trailing delimiters.
     """
     scholarships = []
     seen = set()
@@ -52,6 +52,9 @@ def parse_numbered_list(text: str) -> list[str]:
 
         # Strip leading numbers/bullets: e.g. "1.", "1)", "[1]", "-", "*", "•"
         cleaned = re.sub(r"^(?:\[?\d+[\.\)\]]?|\-|\*|•)\s*", "", line).strip()
+
+        # Clean enclosing or trailing quotation marks, commas, and semicolons
+        cleaned = cleaned.strip("\"'“”’‘,; ").strip()
 
         # Basic validity check (must be at least 3 chars)
         if len(cleaned) >= 3 and cleaned.lower() not in seen:

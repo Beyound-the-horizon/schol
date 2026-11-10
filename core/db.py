@@ -30,8 +30,8 @@ else:
     db_name = (os.getenv("dbname") or "").strip()
     db_port = int((os.getenv("port") or "").strip() or "5432")
 
-    # In Supabase, the PostgreSQL database is ALWAYS named 'postgres'.
-    # If a user entered their project name or reference ID as dbname, auto-correct it.
+
+    # If a user entered their project name or reference ID as dbname, auto-correct i
     if not db_name or ("supabase" in db_host.lower() and db_name != "postgres"):
         if db_name and db_name != "postgres":
             print(f"[DB] Supabase database name auto-corrected from '{db_name}' to 'postgres'.")

@@ -13,7 +13,8 @@ api_key = os.getenv("GOOGLE_GEMINI_API") or os.getenv("GEMINI_API_KEY")
 if not api_key:
     raise ValueError("GOOGLE_GEMINI_API is missing from .env")
 
-client = genai.Client(api_key=api_key)
+# Specify v1beta API version to enable developer/system instructions and search grounding tools
+client = genai.Client(api_key=api_key, http_options={"api_version": "v1beta"})
 
 
 RESEARCH_SYSTEM_PROMPT = """You are an elite, meticulous academic scholarship research agent.
@@ -48,7 +49,6 @@ For the requested scholarship:
     reraise=True,
 )
 def research_scholarship(target_name: str) -> dict[str, Any]:
-
     """
     Autonomously research a single target scholarship using Gemini 2.5 Flash
     with native Google Search grounding.

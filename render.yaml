@@ -1,0 +1,50 @@
+services:
+  # ----------------------------------------------------------------------------
+  # FastAPI Backend Web Service
+  # ----------------------------------------------------------------------------
+  - type: web
+    name: schol-backend-api
+    runtime: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn api.main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /api/v1/health
+    envVars:
+      - key: ENVIRONMENT
+        value: staging
+      - key: DEBUG
+        value: false
+      - key: HOST
+        value: 0.0.0.0
+      - key: API_PREFIX
+        value: /api/v1
+      - key: DATABASE_URL
+        sync: false
+      - key: CORS_ORIGINS
+        sync: false
+      - key: INGESTION_TOKEN
+        sync: false
+      - key: ADMIN_TOKEN
+        sync: false
+
+  # ----------------------------------------------------------------------------
+  # Autonomous Crawler Cron Job Service
+  # Runs periodically (every 6 hours) to research & ingest new opportunities
+  # ----------------------------------------------------------------------------
+  - type: cron
+    name: schol-crawler-cron
+    runtime: python
+    schedule: "0 */6 * * *"
+    buildCommand: pip install -r requirements.txt
+    startCommand: python core/runner.py --limit 5
+    envVars:
+      - key: API_BASE_URL
+        sync: false
+      - key: INGESTION_TOKEN
+        sync: false
+      - key: GOOGLE_GEMINI_API
+        sync: false
+      - key: TAVILY_API_KEY
+        sync: false
+      - key: SCHOLARSHIP_CATALOG_URL
+        sync: false
+

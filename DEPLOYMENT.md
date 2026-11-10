@@ -4,74 +4,46 @@ This project provides two enterprise-grade, serverless deployment methods for ru
 
 ---
 
-## Concurrency & Rate Limit Mitigations
+## ⚠️ Important: Supabase IPv4 vs. IPv6 (GitHub Actions & Serverless)
 
-The pipeline includes a **3-tier concurrency mitigation architecture**:
-1. **GitHub Actions Concurrency Lock**: `concurrency: group: autonomous-scholarship-pipeline-lock, cancel-in-progress: false` prevents any overlapping GitHub Action executions.
-2. **Cloud Run Single Worker Constraints**: Configured with `--tasks=1 --parallelism=1 --max-retries=1` guaranteeing strictly 1 container task per execution.
-3. **PostgreSQL Advisory Lock (`pg_try_advisory_lock`)**: Inside `core/tools/db.py`, the runner claims a database-level lock (`SCHOLARSHIP_RUNNER_LOCK_ID = 884729103`). If another run is in progress from any environment, it safely skips execution with an exit code of `0`.
-4. **Adaptive Rate Pacing**: `AGENT_DELAY_SECONDS=3` between queries and `AGENT_ERROR_DELAY_SECONDS=5` with exponential backoff on retry.
+GitHub Actions runners operate on an **IPv4-only network**. 
+- Supabase's **Direct Connection** (`db.[project-ref].supabase.co`) resolves to an **IPv6-only** address (`2a05:d018:...`), causing `psycopg.OperationalError: Network is unreachable`.
+- **Solution**: Always use Supabase's **Connection Pooler (Supavisor)**, which supports IPv4.
+
+### Where to Find the IPv4 Pooler in Supabase:
+1. Open your **Supabase Dashboard** ➔ Click the **Connect** button at the top (or go to **Project Settings ➔ Database**).
+2. Under the **Connection string** tab, select **Session pooler** (recommended, Port `5432`):
+   * **Host**: `aws-0-[region].pooler.supabase.com` (e.g. `aws-0-eu-central-1.pooler.supabase.com`)
+   * **Port**: `5432`
+   * **User**: `postgres.[YOUR-PROJECT-REF]` *(Notice the project reference is attached to the username!)*
+   * **Password**: Your database password
+   * **Database**: `postgres`
 
 ---
 
-## Method 1: GitHub Actions (Recommended - Zero Infrastructure Setup)
+## Method 1: GitHub Actions (Recommended)
 
 The repository includes a ready-to-run GitHub Actions workflow at [`.github/workflows/autonomous_agents.yml`](.github/workflows/autonomous_agents.yml).
 
-### 1. Add Repository Secrets
-Navigate to your GitHub repository: **Settings ➔ Secrets and variables ➔ Actions ➔ New repository secret** and add:
+### Option A: Using Discrete Secrets in GitHub (Recommended)
+Navigate to **Settings ➔ Secrets and variables ➔ Actions ➔ New repository secret** and add:
 
-| Secret Name | Description | Example |
+| Secret Name | Value Description | Example / Notes |
 | :--- | :--- | :--- |
-| `GOOGLE_GEMINI_API` | Your Google Gemini API Key | `AIzaSy...` |
-| `DB_USER` | Supabase / PostgreSQL Username | `postgres.yourproject` |
-| `DB_PASSWORD` | Supabase / PostgreSQL Password | `YourSecurePassword` |
-| `DB_HOST` | Supabase Database Host | `aws-0-eu-central-1.pooler.supabase.com` |
-| `DB_PORT` | PostgreSQL Port (optional, defaults to 5432) | `5432` or `6543` |
-| `DB_NAME` | Database Name (optional, defaults to postgres) | `postgres` |
+| `DB_HOST` | **Pooler Host** (IPv4) | `aws-0-eu-central-1.pooler.supabase.com` |
+| `DB_USER` | **Pooler User** with project ref | `postgres.yourprojectref` |
+| `DB_PASSWORD` | Database Password | `YourSecretPassword` |
+| `DB_PORT` | Pooler Port | `5432` (or `6543`) |
+| `DB_NAME` | Database Name | `postgres` |
+| `GOOGLE_GEMINI_API` | Google Gemini API Key | `AIzaSy...` |
 | `SCHOLARSHIP_CATALOG_URL` | *(Optional)* Google Doc list URL | `https://docs.google.com/document/d/...` |
 
-### 2. Automatic Schedule
-The workflow automatically executes **daily at 06:00 UTC** (`cron: '0 6 * * *'`).
-
-### 3. Manual On-Demand Trigger
-1. Go to the **Actions** tab in GitHub.
-2. Select **Autonomous Scholarship Agents**.
-3. Click **Run workflow**, set the batch limit (default: 5), and click **Run workflow**.
-
----
-
-## Method 2: Google Cloud Run Jobs & Cloud Scheduler
-
-Runs as an on-demand container job on Google Cloud Platform (zero idle cost; spins up for ~2 minutes, saves to Supabase, then shuts down).
-
-### 1. Store Secrets in GCP Secret Manager
-```bash
-gcloud services enable secretmanager.googleapis.com
-
-# Create the secrets
-echo -n "YOUR_GEMINI_KEY" | gcloud secrets create GOOGLE_GEMINI_API --data-file=-
-echo -n "YOUR_DB_USER"    | gcloud secrets create DB_USER --data-file=-
-echo -n "YOUR_DB_PASS"    | gcloud secrets create DB_PASSWORD --data-file=-
-echo -n "YOUR_DB_HOST"    | gcloud secrets create DB_HOST --data-file=-
-echo -n "5432"             | gcloud secrets create DB_PORT --data-file=-
-echo -n "postgres"         | gcloud secrets create DB_NAME --data-file=-
+### Option B: Using a Single `DATABASE_URL` Secret
+Alternatively, you can add a single secret named `DATABASE_URL`:
+```
+postgresql://postgres.YOUR_PROJECT_REF:YOUR_PASSWORD@aws-0-YOUR_REGION.pooler.supabase.com:5432/postgres?sslmode=require
 ```
 
-### 2. Deploy
-Run the automated deployment script:
-* **Linux / macOS**:
-  ```bash
-  chmod +x cloudrun/deploy.sh
-  ./cloudrun/deploy.sh
-  ```
-* **Windows (PowerShell)**:
-  ```powershell
-  .\cloudrun\deploy.ps1
-  ```
-
-### 3. Triggering Cloud Run Job Manually
-```bash
-gcloud run jobs execute autonomous-scholarship-agent --region=us-central1
-```
-
+### Automatic Schedule & Manual Trigger
+* **Daily Cron**: Automatically executes every day at **06:00 UTC** (`cron: '0 6 * * *'`).
+* **Manual UI Trigger**: Go to **Actions ➔ Autonomous Scholarship Agents ➔ Run workflow**.

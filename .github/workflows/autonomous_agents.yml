@@ -58,7 +58,10 @@ jobs:
           GOOGLE_GEMINI_API: ${{ secrets.GOOGLE_GEMINI_API }}
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
 
-          # Supabase PostgreSQL Database Credentials
+          # Direct Connection URL (Optional - if provided, overrides individual credentials)
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+
+          # Supabase PostgreSQL Database Credentials (IPv4 Pooler recommended)
           user: ${{ secrets.DB_USER }}
           password: ${{ secrets.DB_PASSWORD }}
           host: ${{ secrets.DB_HOST }}
@@ -85,4 +88,3 @@ jobs:
 
           echo "Executing: python core/runner.py $RUN_ARGS"
           python core/runner.py $RUN_ARGS
-

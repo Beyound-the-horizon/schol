@@ -10,10 +10,27 @@ load_dotenv(find_dotenv())
 
 
 api_key = os.getenv("GOOGLE_GEMINI_API") or os.getenv("GEMINI_API_KEY")
-if not api_key:
-    raise ValueError("GOOGLE_GEMINI_API is missing from .env")
 
-client = genai.Client(api_key=api_key)
+client = None
+if api_key:
+    client = genai.Client(api_key=api_key)
+
+
+def get_gemini_client() -> genai.Client:
+    """Retrieve or initialize the Google Gemini Client on demand.
+    
+    Raises ValueError with a helpful message if API key is not configured.
+    """
+    global client, api_key
+    if client is not None:
+        return client
+    api_key = os.getenv("GOOGLE_GEMINI_API") or os.getenv("GEMINI_API_KEY")
+    if not api_key:
+        raise ValueError(
+            "GOOGLE_GEMINI_API is missing from environment. Set GOOGLE_GEMINI_API in .env"
+        )
+    client = genai.Client(api_key=api_key)
+    return client
 
 
 RESEARCH_SYSTEM_PROMPT = """You are an elite, meticulous academic scholarship research agent.
@@ -59,7 +76,8 @@ Target: {target_name}
 Search for the official portal, upcoming deadlines, funding terms, eligibility criteria, and application requirements.
 Provide a comprehensive, factual research report citing the official sources."""
 
-    response = client.models.generate_content(
+    gemini = get_gemini_client()
+    response = gemini.models.generate_content(
         model="gemini-2.5-flash",
         contents=user_query,
         config=types.GenerateContentConfig(
@@ -90,3 +108,8 @@ Provide a comprehensive, factual research report citing the official sources."""
         "sources": list(dict.fromkeys(sources)),  
         "queries": queries,
     }
+
+
+def research_scholarships(query_or_target: str) -> dict[str, Any]:
+    """Compatibility wrapper for plural function name imported in tests/scripts."""
+    return research_scholarship(query_or_target)

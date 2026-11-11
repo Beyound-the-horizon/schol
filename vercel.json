@@ -3,11 +3,19 @@
   "framework": "vite",
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
+  "functions": {
+    "api/main.py": {
+      "includeFiles": "api/**"
+    }
+  },
   "rewrites": [
+    {
+      "source": "/api/(.*)",
+      "destination": "/api/main.py"
+    },
     {
       "source": "/(.*)",
       "destination": "/index.html"
     }
   ]
 }
-

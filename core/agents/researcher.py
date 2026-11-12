@@ -8,7 +8,7 @@ from tenacity import retry, stop_after_attempt, wait_exponential
 
 load_dotenv(find_dotenv())
 
-# Enforce v1beta globally for the Google GenAI SDK to enable system instructions and search tools
+# Enforce v1beta globally for the Google GenAI SDK
 os.environ["GOOGLE_GENAI_API_VERSION"] = "v1beta"
 
 api_key = os.getenv("GOOGLE_GEMINI_API") or os.getenv("GEMINI_API_KEY")
@@ -21,6 +21,7 @@ client = genai.Client(
     http_options=types.HttpOptions(api_version="v1beta"),
 )
 
+DEFAULT_MODEL = os.getenv("GEMINI_MODEL", "gemini-2.5-flash")
 
 RESEARCH_SYSTEM_PROMPT = """You are an elite, meticulous academic scholarship research agent.
 Your objective is to perform real-time web research using Google Search to gather verified facts for an official scholarship program.
@@ -55,7 +56,7 @@ For the requested scholarship:
 )
 def research_scholarship(target_name: str) -> dict[str, Any]:
     """
-    Autonomously research a single target scholarship using Gemini 2.5 Flash
+    Autonomously research a single target scholarship using Gemini Flash
     with native Google Search grounding.
     """
     user_query = f"""Please perform deep web research on the following scholarship:
@@ -64,8 +65,10 @@ Target: {target_name}
 Search for the official portal, upcoming deadlines, funding terms, eligibility criteria, and application requirements.
 Provide a comprehensive, factual research report citing the official sources."""
 
+    model_name = os.getenv("GEMINI_MODEL", "gemini-2.5-flash")
+
     response = client.models.generate_content(
-        model="gemini-2.5-flash",
+        model=model_name,
         contents=user_query,
         config=types.GenerateContentConfig(
             system_instruction=RESEARCH_SYSTEM_PROMPT,

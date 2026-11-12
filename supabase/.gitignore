@@ -6,3 +6,11 @@
 .env.keys
 .env.local
 .env.*.local
+
+# virtual env and pycache
+.venv
+._pycache_
+\._pycache_
+_pycache_
+\.venv
+venv

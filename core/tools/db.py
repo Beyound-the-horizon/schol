@@ -53,6 +53,25 @@ def acquire_run_lock():
         session.close()
 
 
+def ensure_schema_compatibility():
+    """Ensure Supabase columns are widened to TEXT to avoid StringDataRightTruncation."""
+    with SessionLocal() as session:
+        try:
+            session.execute(text("""
+                ALTER TABLE scholarships 
+                  ALTER COLUMN host_country TYPE TEXT,
+                  ALTER COLUMN minimum_cgpa TYPE TEXT,
+                  ALTER COLUMN age_limit TYPE TEXT,
+                  ALTER COLUMN award_duration TYPE TEXT,
+                  ALTER COLUMN deadline_timezone TYPE TEXT,
+                  ALTER COLUMN name TYPE TEXT,
+                  ALTER COLUMN provider TYPE TEXT;
+            """))
+            session.commit()
+        except Exception:
+            session.rollback()
+
+
 def normalize_name(name: str) -> str:
     """Normalize a scholarship name for deduplication matching."""
     cleaned = re.sub(r"\(.*?\)", "", name)  # Remove parentheticals like (United Kingdom)
@@ -62,6 +81,7 @@ def normalize_name(name: str) -> str:
 
 def get_existing_scholarships() -> list[dict[str, Any]]:
     """Retrieve all existing scholarships from Supabase."""
+    ensure_schema_compatibility()
     with SessionLocal() as session:
         query = select(
             Scholarship.id,

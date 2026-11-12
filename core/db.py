@@ -6,6 +6,18 @@ from dotenv import load_dotenv, find_dotenv
 
 load_dotenv(find_dotenv())
 
+
+def get_env_val(*keys: str, default: str = "") -> str:
+    """Helper to retrieve environment variables supporting both DB_UPPERCASE and lowercase naming."""
+    for k in keys:
+        val = os.getenv(k)
+        if val is not None:
+            cleaned = val.strip().strip("'\"")
+            if cleaned:
+                return cleaned
+    return default
+
+
 # Support either full DATABASE_URL or discrete connection parameters
 raw_database_url = os.getenv("DATABASE_URL")
 
@@ -26,10 +38,12 @@ if raw_database_url:
     except Exception:
         DATABASE_URL = raw_database_url
 else:
-    db_host = (os.getenv("host") or "").strip()
-    db_name = (os.getenv("dbname") or "").strip()
-    db_port = int((os.getenv("port") or "").strip() or "5432")
-
+    db_user = get_env_val("DB_USER", "user")
+    db_password = get_env_val("DB_PASSWORD", "password")
+    db_host = get_env_val("DB_HOST", "host")
+    db_port_str = get_env_val("DB_PORT", "port", default="5432")
+    db_port = int(db_port_str) if db_port_str.isdigit() else 5432
+    db_name = get_env_val("DB_NAME", "dbname", default="postgres")
 
     
     if not db_name or ("supabase" in db_host.lower() and db_name != "postgres"):
@@ -39,8 +53,8 @@ else:
 
     DATABASE_URL = URL.create(
         drivername="postgresql+psycopg",
-        username=os.getenv("user"),
-        password=os.getenv("password"),
+        username=db_user,
+        password=db_password,
         host=db_host,
         port=db_port,
         database=db_name,

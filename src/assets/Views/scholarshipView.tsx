@@ -73,6 +73,7 @@ export default function ScholarshipView({
   const courses = scholarship.courses ?? [];
   const focusAreas = scholarship.focusAreas ?? [];
   const [courseQuery, setCourseQuery] = useState("");
+  const [isHoverCardOpen, setIsHoverCardOpen] = useState(false);
   const visibleCourses = useMemo(
     () =>
       courses.filter((course) =>
@@ -187,14 +188,23 @@ export default function ScholarshipView({
                 label={
                   <span className="documentsLabelWithInfo">
                     <span>Documents</span>
-                    <HoverCard openDelay={100} closeDelay={150}>
+                    <HoverCard
+                      open={isHoverCardOpen}
+                      onOpenChange={setIsHoverCardOpen}
+                      openDelay={80}
+                      closeDelay={150}
+                    >
                       <HoverCardTrigger asChild>
                         <button
                           type="button"
                           className="infoIconButton"
-                          aria-label="Document format requirements"
+                          aria-label="View accepted document formats"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            setIsHoverCardOpen((prev) => !prev);
+                          }}
                         >
-                          <Info size={13} strokeWidth={1.5} />
+                          <Info size={13} strokeWidth={1.75} />
                         </button>
                       </HoverCardTrigger>
                       <HoverCardContent side="right" align="start" className="documentsHoverCard">
@@ -235,7 +245,15 @@ export default function ScholarshipView({
                           {requirement.name}
                         </span>
                       ))
-                    : scholarship.documents}
+                    : (scholarship.documents ?? "")
+                        .split(",")
+                        .map((doc) => doc.trim())
+                        .filter(Boolean)
+                        .map((doc) => (
+                          <span key={doc} className="documentNameItem">
+                            {doc}
+                          </span>
+                        ))}
                 </div>
               </DetailRow>
               <DetailRow label="Motivation letter">

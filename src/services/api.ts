@@ -5,9 +5,9 @@
 
 import type { DocumentRequirement, Scholarship, ScholarshipKind } from "../data/scholarships";
 
-// Base API URL configured via Vite environment variable, defaulting to local FastAPI service
+// Base API URL configured via Vite environment variable, defaulting to /api/v1 (relative for Vercel & Vite proxy)
 const API_BASE_URL =
-  import.meta.env.VITE_API_BASE_URL || "http://localhost:8000/api/v1";
+  import.meta.env.VITE_API_BASE_URL || "/api/v1";
 
 /**
  * Backend scholarship record matching public API contract.
@@ -68,6 +68,37 @@ export function normalizeOrganization(kind?: string | null): ScholarshipKind {
 }
 
 /**
+ * Formats an offer description into a concise table label (e.g. Fully-funded or Partial).
+ */
+export function formatOfferSummary(rawOffer?: string | null): string {
+  if (!rawOffer) return "Fully-funded";
+  const lower = rawOffer.toLowerCase();
+  if (lower.includes("partial")) return "Partial";
+  if (
+    lower.includes("full") ||
+    lower.includes("tuition") ||
+    lower.includes("flights") ||
+    lower.includes("stipend") ||
+    lower.includes("airfare")
+  ) {
+    return "Fully-funded";
+  }
+  return rawOffer.length > 20 ? "Fully-funded" : rawOffer;
+}
+
+/**
+ * Formats eligibility into a clean binary label for list rows.
+ */
+export function formatEligibilitySummary(rawElig?: string | null): string {
+  if (!rawElig) return "Eligible";
+  const lower = rawElig.toLowerCase();
+  if (lower.includes("not eligible") || lower.includes("ineligible")) {
+    return "Not eligible";
+  }
+  return "Eligible";
+}
+
+/**
  * Formats an ISO 8601 calendar date (YYYY-MM-DD) into a user-friendly display string.
  */
 export function formatDeadlineDisplay(deadline: string | null): string {
@@ -96,32 +127,47 @@ export function formatDeadlineDisplay(deadline: string | null): string {
  * Maps raw backend API record to the UI's Scholarship interface.
  */
 export function mapApiToUiScholarship(item: ApiScholarship): Scholarship {
+  const selectionText = item.selection || "";
+  const returnToHome =
+    selectionText.toLowerCase().includes("returning to your home country") ||
+    selectionText.toLowerCase().includes("return to their home country");
+
   return {
     id: item.id,
     name: item.name,
-    location: item.location,
+    location: item.location || "International",
     organization: normalizeOrganization(item.organization),
-    offer: item.offer,
-    eligibility: item.eligibility,
+    offer: formatOfferSummary(item.offer),
+    eligibility: formatEligibilitySummary(item.eligibility),
     deadline: item.display_deadline || (item.deadline ? formatDeadlineDisplay(item.deadline) : "Rolling / Open"),
     source: item.source || (item.official_url ? "Url" : undefined),
     official_url: item.official_url || undefined,
     deadlineDate: item.deadlineDate || (item.deadline ? formatDeadlineDisplay(item.deadline) : "Rolling / Open"),
     daysLeft: item.daysLeft || undefined,
-    eligibilityDetail: item.eligibilityDetail || undefined,
-    duration: item.duration || undefined,
+    eligibilityDetail: item.eligibilityDetail || item.eligibility || "Available to international scholars",
+    duration: item.duration || "1–2 Years",
     minCgpa: item.minCgpa || undefined,
     workExperience: item.workExperience || undefined,
-    recommendations: item.recommendations || undefined,
-    english: item.english || undefined,
-    documents: item.documents || undefined,
-    documentRequirements: item.documentRequirements || undefined,
-    motivation: item.motivation || undefined,
+    recommendations: item.recommendations || "2",
+    english: item.english || "IELTS/TOEFL",
+    documents: item.documents || "CV, transcript, passport",
+    documentRequirements: item.documentRequirements || (
+      item.documents ? item.documents.split(",").map((d) => ({
+        name: d.trim(),
+        formats: ["PDF"],
+        maxSize: "5 MB",
+      })) : undefined
+    ),
+    motivation: item.motivation || "Required",
     stipend: item.stipend || undefined,
-    benefits: item.benefits || undefined,
-    courses: item.courses || undefined,
-    focusAreas: item.focusAreas || undefined,
+    benefits: item.benefits && item.benefits.length > 0 ? item.benefits : ["Travel", "Living", "Stipend"],
+    courses: item.courses && item.courses.length > 0 ? item.courses : undefined,
+    focusAreas: item.focusAreas && item.focusAreas.length > 0 ? item.focusAreas : [item.name],
     selection: item.selection || undefined,
+    returnToHomeCountry: returnToHome,
+    returnToHomeCountryNote: returnToHome
+      ? "Scholars must return to their home country for at least two years after the scholarship ends."
+      : undefined,
   };
 }
 

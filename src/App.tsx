@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
-import { scholarships } from "./data/scholarships";
+import { scholarships, type Scholarship } from "./data/scholarships";
 import HomeView from "./assets/Views/homeView";
 import ScholarshipView from "./assets/Views/scholarshipView";
 import UserInformation from "./assets/Views/userInformation";
@@ -9,6 +9,7 @@ import { Toaster } from "@/components/ui/sonner";
 import type { Filters } from "./assets/Components/Search bar/searchbarItem";
 import { deadlineToIso, filterScholarships } from "./lib/filterScholarships";
 import { loadStoredAccount } from "./lib/googleAccount";
+import { fetchScholarships, fetchScholarshipById } from "./services/api";
 import "./App.css";
 
 type Screen = "home" | "scholarship" | "profile" | "bookmarks";
@@ -32,40 +33,107 @@ export default function App() {
     useState<ScholarshipSource>("home");
   const [page, setPage] = useState(1);
   const [filters, setFilters] = useState<Filters>({});
-  const totalPages = 3056;
+  const [dbScholarships, setDbScholarships] = useState<Scholarship[]>([]);
+  const [detailedScholarship, setDetailedScholarship] = useState<Scholarship | null>(null);
+  const [stats, setStats] = useState({ ongoing: "4", eligible: "2", total: "6" });
+  const [apiTotalPages, setApiTotalPages] = useState<number>(1);
   const screen = stack[stack.length - 1] ?? "home";
 
-  const selected = useMemo(
-    () => scholarships.find((item) => item.id === selectedId) ?? scholarships[0],
-    [selectedId]
+  const [pageSize, setPageSize] = useState(() => {
+    if (typeof window === "undefined") return 10;
+    const available = window.innerHeight - 170;
+    return Math.max(5, Math.min(10, Math.floor(available / 48)));
+  });
+
+  useEffect(() => {
+    function handleResize() {
+      const available = window.innerHeight - 170;
+      setPageSize(Math.max(5, Math.min(10, Math.floor(available / 48))));
+    }
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  // Fetch real scholarships from backend connected to Supabase
+  useEffect(() => {
+    let active = true;
+
+    fetchScholarships({
+      page,
+      limit: pageSize,
+      location: filters.location,
+      organization: filters.type,
+      offer: filters.funding,
+      status: filters.status,
+      course: filters.course,
+    })
+      .then((res) => {
+        if (!active) return;
+        if (res.scholarships && res.scholarships.length > 0) {
+          setDbScholarships(res.scholarships);
+          setApiTotalPages(res.totalPages || 1);
+          setStats(res.stats);
+        }
+      })
+      .catch((err) => {
+        console.warn("Could not fetch scholarships from backend, using fallback:", err);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [page, pageSize, filters]);
+
+  const activeScholarships = useMemo(
+    () => (dbScholarships.length > 0 ? dbScholarships : scholarships),
+    [dbScholarships]
   );
 
-  const visibleScholarships = useMemo(
-    () => filterScholarships(scholarships, filters),
-    [filters]
-  );
+  const selected = useMemo(() => {
+    if (detailedScholarship && detailedScholarship.id === selectedId) {
+      return detailedScholarship;
+    }
+    return (
+      activeScholarships.find((item) => item.id === selectedId) ??
+      activeScholarships[0] ??
+      scholarships[0]
+    );
+  }, [selectedId, detailedScholarship, activeScholarships]);
 
-  const PAGE_SIZE = 10;
+  const visibleScholarships = useMemo(() => {
+    if (dbScholarships.length > 0) {
+      return dbScholarships;
+    }
+    return filterScholarships(scholarships, filters);
+  }, [dbScholarships, filters]);
+
   const pageScholarships = useMemo(() => {
+    if (dbScholarships.length > 0) {
+      return dbScholarships;
+    }
     const total = visibleScholarships.length;
     if (total === 0) return [];
-    const startIndex = ((page - 1) * PAGE_SIZE) % total;
+    const startIndex = ((page - 1) * pageSize) % total;
     const result: typeof visibleScholarships = [];
-    for (let i = 0; i < PAGE_SIZE; i++) {
+    for (let i = 0; i < pageSize; i++) {
       const item = visibleScholarships[(startIndex + i) % total];
       if (item) {
         result.push(item);
       }
     }
     return result;
-  }, [visibleScholarships, page]);
+  }, [dbScholarships, visibleScholarships, page, pageSize]);
 
   const bookmarkedScholarships = useMemo(
     () =>
       bookmarkedIds
-        .map((id) => scholarships.find((item) => item.id === id))
+        .map(
+          (id) =>
+            activeScholarships.find((item) => item.id === id) ??
+            scholarships.find((item) => item.id === id)
+        )
         .filter((item): item is (typeof scholarships)[number] => Boolean(item)),
-    [bookmarkedIds]
+    [bookmarkedIds, activeScholarships]
   );
 
   const calendarEvents = useMemo(
@@ -95,17 +163,28 @@ export default function App() {
     setStack(["home"]);
   }
 
-  function openScholarship(id: number, source: ScholarshipSource = "home") {
+  async function openScholarship(id: number, source: ScholarshipSource = "home") {
     setSelectedId(id);
     setScholarshipSource(source);
     setSearchOpen(false);
     navigate("scholarship");
+
+    try {
+      const detailed = await fetchScholarshipById(id);
+      if (detailed) {
+        setDetailedScholarship(detailed);
+      }
+    } catch (err) {
+      console.warn("Could not fetch detailed scholarship by ID:", err);
+    }
   }
 
   function toggleBookmark(id: number) {
     const exists = bookmarkedIds.includes(id);
     const name =
-      scholarships.find((item) => item.id === id)?.name ?? "Scholarship";
+      activeScholarships.find((item) => item.id === id)?.name ??
+      scholarships.find((item) => item.id === id)?.name ??
+      "Scholarship";
     setBookmarkedIds((current) =>
       exists ? current.filter((item) => item !== id) : [...current, id]
     );
@@ -143,13 +222,13 @@ export default function App() {
       }
       if (event.key === "ArrowRight") {
         event.preventDefault();
-        setPage((current) => Math.min(totalPages, current + 1));
+        setPage((current) => Math.min(apiTotalPages, current + 1));
       }
     }
 
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, [screen, searchOpen, totalPages]);
+  }, [screen, searchOpen, apiTotalPages]);
 
   const sharedNav = {
     searchOpen,
@@ -194,7 +273,7 @@ export default function App() {
       ) : screen === "scholarship" ? (
         <ScholarshipView
           scholarship={selected}
-          scholarships={scholarships}
+          scholarships={activeScholarships}
           bookmarked={bookmarkedIds.includes(selected.id)}
           source={scholarshipSource}
           onBack={goHome}
@@ -206,13 +285,13 @@ export default function App() {
         <HomeView
           scholarships={pageScholarships}
           page={page}
-          totalPages={totalPages}
-          ongoingCount="12,000"
-          eligibleCount="10,344"
-          totalCount="16,218"
+          totalPages={apiTotalPages}
+          ongoingCount={stats.ongoing}
+          eligibleCount={stats.eligible}
+          totalCount={stats.total}
           onSelectScholarship={(id) => openScholarship(id, "home")}
           onPrevPage={() => setPage((current) => Math.max(1, current - 1))}
-          onNextPage={() => setPage((current) => Math.min(totalPages, current + 1))}
+          onNextPage={() => setPage((current) => Math.min(apiTotalPages, current + 1))}
           onGoToPage={setPage}
           {...sharedNav}
         />

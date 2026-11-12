@@ -131,16 +131,18 @@ function SearchableFilter({
         />
       </div>
       {selectedValues.length > 0 && (
-        <div className="locationChips">
+        <div className="locationChips" role="list" aria-label="Selected filters">
           {selectedValues.map((value) => (
             <button
               key={value}
               type="button"
               className="locationChip"
+              role="listitem"
+              aria-label={`Remove filter: ${value}`}
               onClick={() => onToggle(value)}
             >
               <span>{value}</span>
-              <X size={12} strokeWidth={1.5} />
+              <X size={12} strokeWidth={1.5} className="chipCloseIcon" />
             </button>
           ))}
         </div>

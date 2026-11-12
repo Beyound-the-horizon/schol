@@ -41,6 +41,22 @@ class Settings(BaseSettings):
         case_sensitive=False,
     )
 
+    @model_validator(mode="before")
+    @classmethod
+    def resolve_database_url_from_integrations(cls, data: object) -> object:
+        """Fallback to Vercel/Supabase integration environment variables if DATABASE_URL is not provided."""
+        if isinstance(data, dict):
+            url = (
+                data.get("DATABASE_URL")
+                or data.get("database_url")
+                or data.get("POSTGRES_URL")
+                or data.get("POSTGRES_PRISMA_URL")
+                or data.get("POSTGRES_URL_NON_POOLING")
+            )
+            if url and not data.get("database_url"):
+                data["database_url"] = url
+        return data
+
     @field_validator("cors_origins", mode="before")
     @classmethod
     def parse_cors_origins(cls, value: Union[str, List[str]]) -> List[str]:

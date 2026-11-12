@@ -7,8 +7,8 @@
 
 .homeContent {
   width: min(1365px, calc(100% - 64px));
-  margin: var(--spacing-32) auto 0;
-  padding-bottom: var(--spacing-48);
+  margin: clamp(16px, 2.5vh, 32px) auto 0;
+  padding-bottom: max(var(--spacing-64), 8vh);
   overflow-x: auto;
   overscroll-behavior: contain;
 }

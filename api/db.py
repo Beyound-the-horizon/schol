@@ -5,8 +5,9 @@ Supports PostgreSQL (via asyncpg for Supabase Cloud) and SQLite
 """
 
 import logging
+import re
 from typing import AsyncGenerator, Dict, Optional, Tuple
-from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
+from urllib.parse import parse_qsl, quote, unquote, urlencode, urlsplit, urlunsplit
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import (
     AsyncEngine,
@@ -28,7 +29,8 @@ def normalize_database_url(url: str) -> str:
     
     1. Converts postgres:// or postgresql:// to postgresql+asyncpg://.
     2. Converts sqlite:// to sqlite+aiosqlite://.
-    3. Strips 'sslmode' query parameters, as asyncpg does not accept sslmode
+    3. Safely percent-encodes unencoded special characters in the password.
+    4. Strips 'sslmode' query parameters, as asyncpg does not accept sslmode
        in the URL and expects ssl passed via connect_args instead.
     """
     if not url:
@@ -43,6 +45,21 @@ def normalize_database_url(url: str) -> str:
         url_str = url_str.replace("postgresql://", "postgresql+asyncpg://", 1)
     elif url_str.startswith("sqlite://") and not url_str.startswith("sqlite+aiosqlite://"):
         url_str = url_str.replace("sqlite://", "sqlite+aiosqlite://", 1)
+
+    # Safely handle passwords with unescaped special characters (@, #, %, !, etc.)
+    # Pattern: scheme://user:password@host:port/database?query
+    match = re.match(
+        r"^(?P<scheme>[a-zA-Z0-9+_]+)://(?P<user>[^:/@]+):(?P<password>.+?)@(?P<rest>[^/@:]+(?::\d+)?(?:/.*)?)$",
+        url_str
+    )
+    if match:
+        scheme = match.group("scheme")
+        user = match.group("user")
+        raw_pw = match.group("password")
+        rest = match.group("rest")
+        # Ensure password is clean percent-encoded (unquote first in case partially encoded)
+        encoded_pw = quote(unquote(raw_pw), safe="")
+        url_str = f"{scheme}://{user}:{encoded_pw}@{rest}"
 
     # For asyncpg, strip sslmode from query parameters to prevent connection errors
     if "asyncpg" in url_str and "?" in url_str:

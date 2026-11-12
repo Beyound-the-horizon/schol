@@ -193,18 +193,20 @@
   width: 18px;
   height: 18px;
   padding: 0;
-  border: none;
-  background: transparent;
-  color: var(--text-color-tertiary);
+  border: 1px solid var(--color-border-primary);
+  background: var(--bg-color-primary);
+  color: var(--text-color-secondary);
   border-radius: 50%;
   cursor: pointer;
   transition: color var(--duration-hover) var(--ease-out),
-    background-color var(--duration-hover) var(--ease-out);
+    background-color var(--duration-hover) var(--ease-out),
+    border-color var(--duration-hover) var(--ease-out);
 }
 
 .infoIconButton:hover {
   color: var(--text-color-primary);
-  background: var(--bg-color-primary);
+  background: var(--bg-base-color-light);
+  border-color: var(--text-color-secondary);
 }
 
 .infoIconButton:focus-visible {
@@ -213,13 +215,15 @@
 }
 
 .documentsHoverCard {
+  z-index: 9999 !important;
   background: var(--bg-base-color-light);
   border: 1px solid var(--color-border-primary);
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
   border-radius: var(--radius-0);
   padding: var(--padding-12);
   font-family: var(--rowitem-font);
   width: 280px;
+  pointer-events: auto;
 }
 
 .hoverCardTitle {

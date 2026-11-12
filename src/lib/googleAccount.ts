@@ -34,11 +34,29 @@ const SCOPES = [
   "openid",
   "email",
   "profile",
-  "https://www.googleapis.com/auth/gmail.send",
+  "https://www.googleapis.com/auth/gmail.readonly",
   "https://www.googleapis.com/auth/calendar.events",
 ].join(" ");
 
 export function loadStoredAccount(): GoogleAccount | null {
+  // Check if returning from Google OAuth redirect with parameters
+  if (typeof window !== "undefined") {
+    try {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get("google") === "connected") {
+        const email = params.get("email") || "";
+        const name = params.get("name") || email;
+        const account: GoogleAccount = { email, name, accessToken: "" };
+        saveAccount(account);
+        const cleanUrl = window.location.origin + window.location.pathname;
+        window.history.replaceState({}, document.title, cleanUrl);
+        return account;
+      }
+    } catch {
+      // Ignore URL parsing errors
+    }
+  }
+
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     return raw ? (JSON.parse(raw) as GoogleAccount) : null;
@@ -91,33 +109,43 @@ async function profileFromToken(accessToken: string) {
 
 export async function connectGoogleAccount(): Promise<GoogleAccount> {
   const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID as string | undefined;
-  if (!clientId) {
-    throw new Error(
-      "Add VITE_GOOGLE_CLIENT_ID to connect Gmail and Calendar."
-    );
+  const authServerUrl = import.meta.env.VITE_AUTH_SERVER_URL || "http://localhost:3000";
+
+  // 1. Try Google Identity Services client-side popup if VITE_GOOGLE_CLIENT_ID is set
+  if (clientId) {
+    try {
+      const google = await loadGis();
+      return await new Promise<GoogleAccount>((resolve, reject) => {
+        const client = google.accounts.oauth2.initTokenClient({
+          client_id: clientId,
+          scope: SCOPES,
+          callback: async (response) => {
+            if (!response.access_token) {
+              reject(new Error(response.error ?? "Google sign-in was cancelled"));
+              return;
+            }
+            try {
+              const profile = await profileFromToken(response.access_token);
+              const account = { ...profile, accessToken: response.access_token };
+              saveAccount(account);
+              resolve(account);
+            } catch (error) {
+              reject(error);
+            }
+          },
+        });
+        client.requestAccessToken({ prompt: "consent" });
+      });
+    } catch (gisError) {
+      console.warn("Client-side GIS failed or blocked, falling back to auth server:", gisError);
+    }
   }
-  const google = await loadGis();
-  return new Promise((resolve, reject) => {
-    const client = google.accounts.oauth2.initTokenClient({
-      client_id: clientId,
-      scope: SCOPES,
-      callback: async (response) => {
-        if (!response.access_token) {
-          reject(new Error(response.error ?? "Google sign-in was cancelled"));
-          return;
-        }
-        try {
-          const profile = await profileFromToken(response.access_token);
-          const account = { ...profile, accessToken: response.access_token };
-          saveAccount(account);
-          resolve(account);
-        } catch (error) {
-          reject(error);
-        }
-      },
-    });
-    client.requestAccessToken({ prompt: "consent" });
-  });
+
+  // 2. Fallback to auth server flow (opens OAuth endpoint)
+  const currentUrl = window.location.href;
+  window.location.href = `${authServerUrl}/auth/google?returnTo=${encodeURIComponent(currentUrl)}`;
+
+  return new Promise(() => {});
 }
 
 export async function disconnectGoogleAccount(account: GoogleAccount | null) {
@@ -126,6 +154,18 @@ export async function disconnectGoogleAccount(account: GoogleAccount | null) {
       window.google?.accounts.oauth2.revoke(account.accessToken, resolve);
     });
   }
+
+  // Also call backend disconnect if available
+  const authServerUrl = import.meta.env.VITE_AUTH_SERVER_URL || "http://localhost:3000";
+  try {
+    await fetch(`${authServerUrl}/auth/disconnect`, {
+      method: "POST",
+      credentials: "include",
+    });
+  } catch {
+    // Ignore backend disconnect errors if server is offline
+  }
+
   saveAccount(null);
 }
 
@@ -133,24 +173,41 @@ export async function syncCalendarEvents(
   account: GoogleAccount,
   events: { title: string; date: string }[]
 ) {
-  await Promise.all(
-    events.map((event) =>
-      fetch(
-        "https://www.googleapis.com/calendar/v3/calendars/primary/events",
-        {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${account.accessToken}`,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            summary: event.title,
-            description: "Scholarship deadline from Schol",
-            start: { date: event.date },
-            end: { date: event.date },
-          }),
-        }
+  if (account.accessToken) {
+    // Direct client-side sync using access token
+    await Promise.all(
+      events.map((event) =>
+        fetch(
+          "https://www.googleapis.com/calendar/v3/calendars/primary/events",
+          {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${account.accessToken}`,
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              summary: event.title,
+              description: "Scholarship deadline from Schol",
+              start: { date: event.date },
+              end: { date: event.date },
+            }),
+          }
+        )
       )
-    )
-  );
+    );
+  } else {
+    // Server-side session sync
+    const authServerUrl = import.meta.env.VITE_AUTH_SERVER_URL || "http://localhost:3000";
+    const response = await fetch(`${authServerUrl}/api/calendar/sync`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify({ events }),
+    });
+
+    if (!response.ok) {
+      const err = await response.json().catch(() => ({}));
+      throw new Error(err.error || "Failed to sync calendar events via server.");
+    }
+  }
 }

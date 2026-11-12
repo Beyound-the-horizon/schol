@@ -18,4 +18,12 @@ export default defineConfig({
   optimizeDeps: {
     include: ["react", "react-dom", "lucide-react"],
   },
+  server: {
+    proxy: {
+      "/api": {
+        target: process.env.VITE_BACKEND_URL || "https://schol-tau.vercel.app",
+        changeOrigin: true,
+      },
+    },
+  },
 });

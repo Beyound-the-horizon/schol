@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 
 type DocumentPreviewProps = {
-  file: File;
+  file?: File | null;
   url: string;
   kind: "image" | "pdf" | "file";
   alt: string;
@@ -27,47 +27,57 @@ export default function DocumentPreview({
     let generated: string | null = null;
 
     async function renderFirstPage() {
-      if (kind === "pdf" || file.type === "application/pdf") {
-        const pdfjs = await import("pdfjs-dist");
-        const worker = await import("pdfjs-dist/build/pdf.worker.min.mjs?url");
-        pdfjs.GlobalWorkerOptions.workerSrc = worker.default;
-        const data = await file.arrayBuffer();
-        const pdf = await pdfjs.getDocument({ data }).promise;
-        const page = await pdf.getPage(1);
-        const viewport = page.getViewport({ scale: 1.4 });
+      try {
+        if (kind === "pdf" || file?.type === "application/pdf") {
+          const pdfjs = await import("pdfjs-dist");
+          const worker = await import("pdfjs-dist/build/pdf.worker.min.mjs?url");
+          pdfjs.GlobalWorkerOptions.workerSrc = worker.default;
+          let data: ArrayBuffer;
+          if (file) {
+            data = await file.arrayBuffer();
+          } else {
+            const resp = await fetch(url);
+            data = await resp.arrayBuffer();
+          }
+          const pdf = await pdfjs.getDocument({ data }).promise;
+          const page = await pdf.getPage(1);
+          const viewport = page.getViewport({ scale: 1.4 });
+          const canvas = document.createElement("canvas");
+          canvas.width = viewport.width;
+          canvas.height = viewport.height;
+          const context = canvas.getContext("2d");
+          if (!context) return;
+          await page.render({ canvas, canvasContext: context, viewport }).promise;
+          generated = canvas.toDataURL("image/jpeg", 0.82);
+          if (!cancelled) setPreviewUrl(generated);
+          return;
+        }
+
         const canvas = document.createElement("canvas");
-        canvas.width = viewport.width;
-        canvas.height = viewport.height;
+        canvas.width = 228;
+        canvas.height = 280;
         const context = canvas.getContext("2d");
         if (!context) return;
-        await page.render({ canvas, canvasContext: context, viewport }).promise;
+        context.fillStyle = "#f4f4f5";
+        context.fillRect(0, 0, canvas.width, canvas.height);
+        context.fillStyle = "#71717a";
+        context.font = "13px sans-serif";
+        wrapText(context, file?.name || alt, 16, 40, 196, 18);
         generated = canvas.toDataURL("image/jpeg", 0.82);
         if (!cancelled) setPreviewUrl(generated);
-        return;
+      } catch (err) {
+        console.warn("Could not render document preview:", err);
       }
-
-      const canvas = document.createElement("canvas");
-      canvas.width = 228;
-      canvas.height = 280;
-      const context = canvas.getContext("2d");
-      if (!context) return;
-      context.fillStyle = "#f4f4f5";
-      context.fillRect(0, 0, canvas.width, canvas.height);
-      context.fillStyle = "#71717a";
-      context.font = "13px sans-serif";
-      wrapText(context, file.name, 16, 40, 196, 18);
-      generated = canvas.toDataURL("image/jpeg", 0.82);
-      if (!cancelled) setPreviewUrl(generated);
     }
 
     void renderFirstPage();
     return () => {
       cancelled = true;
     };
-  }, [file, kind, url]);
+  }, [file, kind, url, alt]);
 
   if (!previewUrl) {
-    return <span className="documentFallback">{file.name}</span>;
+    return <span className="documentFallback">{file?.name || alt}</span>;
   }
 
   return <img src={previewUrl} alt={alt} />;

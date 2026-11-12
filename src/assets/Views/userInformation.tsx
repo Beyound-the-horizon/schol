@@ -13,6 +13,16 @@ import {
   syncCalendarEvents,
   type GoogleAccount,
 } from "../../lib/googleAccount";
+import {
+  fetchUserProfile,
+  saveUserProfile,
+  saveProfileDraft,
+  uploadUserDocument,
+  deleteUserDocument,
+  getEffectiveUserId,
+  type ProfileDocument,
+  type UserProfile,
+} from "../../services/profileService";
 import "./userInformation.css";
 
 type UserInformationProps = {
@@ -21,10 +31,12 @@ type UserInformationProps = {
 };
 
 type SlotFile = {
-  file: File;
+  file?: File | null;
   url: string;
   name: string;
   kind: "image" | "pdf" | "file";
+  path?: string;
+  size?: number;
 };
 
 const SLOTS = [
@@ -44,46 +56,234 @@ function labelForSlot(id: string) {
   return SLOTS.find((slot) => slot.id === id)?.label.replace("\n", " ") ?? "Document";
 }
 
-function fileKind(file: File): SlotFile["kind"] {
-  if (file.type.startsWith("image/")) return "image";
-  if (file.type === "application/pdf" || file.name.toLowerCase().endsWith(".pdf")) {
-    return "pdf";
-  }
-  return "file";
-}
-
 export default function UserInformation({
   onClose,
   calendarEvents = [],
 }: UserInformationProps) {
+  const [firstName, setFirstName] = useState("");
+  const [middleName, setMiddleName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [nationality, setNationality] = useState("");
+  const [cgpa, setCgpa] = useState("");
+  const [scale, setScale] = useState("5.0");
+  const [courseStudied, setCourseStudied] = useState("");
   const [files, setFiles] = useState<Record<string, SlotFile | null>>({});
   const [viewer, setViewer] = useState<SlotFile | null>(null);
   const [pendingSlot, setPendingSlot] = useState<string | null>(null);
-  const [scale, setScale] = useState("5.0");
   const [account, setAccount] = useState<GoogleAccount | null>(() =>
     loadStoredAccount()
   );
   const [connecting, setConnecting] = useState(false);
-  const [nationality, setNationality] = useState("");
-  const [courseStudied, setCourseStudied] = useState("");
+  const [isInitialLoading, setIsInitialLoading] = useState(true);
+
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const filesRef = useRef(files);
-  filesRef.current = files;
+  const saveDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const stateRef = useRef({
+    firstName,
+    middleName,
+    lastName,
+    nationality,
+    cgpa,
+    scale,
+    courseStudied,
+    files,
+    account,
+    isInitialLoading,
+  });
+  stateRef.current = {
+    firstName,
+    middleName,
+    lastName,
+    nationality,
+    cgpa,
+    scale,
+    courseStudied,
+    files,
+    account,
+    isInitialLoading,
+  };
+
+  // Load saved profile on mount
+  useEffect(() => {
+    let cancelled = false;
+
+    async function init() {
+      setIsInitialLoading(true);
+      try {
+        const uid = getEffectiveUserId();
+        const profile = await fetchUserProfile(uid);
+        if (cancelled) return;
+        if (profile) {
+          setFirstName(profile.firstName || "");
+          setMiddleName(profile.middleName || "");
+          setLastName(profile.lastName || "");
+          setNationality(profile.nationality || "");
+          setCgpa(profile.cgpa || "");
+          if (profile.cgpaScale) setScale(profile.cgpaScale);
+          setCourseStudied(profile.courseStudied || "");
+          if (profile.documents) {
+            const mappedFiles: Record<string, SlotFile | null> = {};
+            for (const [k, doc] of Object.entries(profile.documents)) {
+              if (doc && doc.url) {
+                mappedFiles[k] = {
+                  file: null,
+                  url: doc.url,
+                  name: doc.name || labelForSlot(k),
+                  kind: doc.kind || "file",
+                  path: doc.path,
+                  size: doc.size,
+                };
+              }
+            }
+            setFiles(mappedFiles);
+          }
+        }
+      } catch (err) {
+        console.error("Failed to load user profile:", err);
+      } finally {
+        if (!cancelled) {
+          setIsInitialLoading(false);
+        }
+      }
+    }
+
+    void init();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  // Save profile to Supabase (and localStorage draft fallback)
+  async function persistProfile(showToast = true) {
+    if (stateRef.current.isInitialLoading) return;
+    const uid = getEffectiveUserId();
+    const currentDocs: Record<string, ProfileDocument> = {};
+    for (const [key, slot] of Object.entries(stateRef.current.files)) {
+      if (slot && slot.url) {
+        currentDocs[key] = {
+          slotId: key,
+          name: slot.name,
+          url: slot.url,
+          path: slot.path || "",
+          kind: slot.kind,
+          size: slot.size,
+        };
+      }
+    }
+
+    const profileData: UserProfile = {
+      userId: uid,
+      firstName: stateRef.current.firstName.trim(),
+      middleName: stateRef.current.middleName.trim(),
+      lastName: stateRef.current.lastName.trim(),
+      nationality: stateRef.current.nationality.trim(),
+      cgpa: stateRef.current.cgpa.trim(),
+      cgpaScale: stateRef.current.scale,
+      courseStudied: stateRef.current.courseStudied.trim(),
+      gmail: stateRef.current.account?.email || "",
+      documents: currentDocs,
+    };
+
+    saveProfileDraft(uid, profileData);
+
+    try {
+      if (showToast) {
+        toast.loading("Saving...", { id: "save-indicator" });
+      }
+      await saveUserProfile(profileData);
+      if (showToast) {
+        toast.success("Saved", { id: "save-indicator", duration: 1500 });
+      }
+    } catch (err) {
+      console.error("Save error:", err);
+      toast.error(
+        err instanceof Error ? err.message : "Failed to save profile (saved locally)",
+        { id: "save-indicator" }
+      );
+    }
+  }
+
+  function triggerAutoSave() {
+    if (isInitialLoading) return;
+    const uid = getEffectiveUserId();
+    saveProfileDraft(uid, {
+      userId: uid,
+      firstName: stateRef.current.firstName,
+      middleName: stateRef.current.middleName,
+      lastName: stateRef.current.lastName,
+      nationality: stateRef.current.nationality,
+      cgpa: stateRef.current.cgpa,
+      cgpaScale: stateRef.current.scale,
+      courseStudied: stateRef.current.courseStudied,
+      gmail: stateRef.current.account?.email || "",
+    });
+
+    if (saveDebounceRef.current) {
+      clearTimeout(saveDebounceRef.current);
+    }
+    saveDebounceRef.current = setTimeout(() => {
+      void persistProfile(true);
+    }, 1200);
+  }
+
+  async function handleClose() {
+    if (saveDebounceRef.current) {
+      clearTimeout(saveDebounceRef.current);
+    }
+    if (!isInitialLoading) {
+      await persistProfile(false);
+    }
+    onClose();
+  }
 
   useEffect(() => {
-    if (!viewer) return;
     function onKeyDown(event: KeyboardEvent) {
-      if (event.key === "Escape") setViewer(null);
+      if (event.key === "Escape") {
+        if (viewer) {
+          setViewer(null);
+        } else {
+          void handleClose();
+        }
+      }
     }
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, [viewer]);
+  }, [viewer, isInitialLoading]);
 
   useEffect(() => {
     return () => {
-      Object.values(filesRef.current).forEach((file) => {
-        if (file) URL.revokeObjectURL(file.url);
-      });
+      if (saveDebounceRef.current) {
+        clearTimeout(saveDebounceRef.current);
+      }
+      if (!stateRef.current.isInitialLoading) {
+        const uid = getEffectiveUserId();
+        const currentDocs: Record<string, ProfileDocument> = {};
+        for (const [key, slot] of Object.entries(stateRef.current.files)) {
+          if (slot && slot.url) {
+            currentDocs[key] = {
+              slotId: key,
+              name: slot.name,
+              url: slot.url,
+              path: slot.path || "",
+              kind: slot.kind,
+              size: slot.size,
+            };
+          }
+        }
+        saveProfileDraft(uid, {
+          userId: uid,
+          firstName: stateRef.current.firstName,
+          middleName: stateRef.current.middleName,
+          lastName: stateRef.current.lastName,
+          nationality: stateRef.current.nationality,
+          cgpa: stateRef.current.cgpa,
+          cgpaScale: stateRef.current.scale,
+          courseStudied: stateRef.current.courseStudied,
+          gmail: stateRef.current.account?.email || "",
+          documents: currentDocs,
+        });
+      }
     };
   }, []);
 
@@ -92,33 +292,61 @@ export default function UserInformation({
     fileInputRef.current?.click();
   }
 
-  function onFileChosen(event: ChangeEvent<HTMLInputElement>) {
+  async function onFileChosen(event: ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0];
     const slotId = pendingSlot;
     event.target.value = "";
     setPendingSlot(null);
     if (!file || !slotId) return;
 
-    const url = URL.createObjectURL(file);
-    setFiles((current) => {
-      const previous = current[slotId];
-      if (previous) URL.revokeObjectURL(previous.url);
-      return {
+    const uid = getEffectiveUserId();
+    const label = labelForSlot(slotId);
+    toast.loading(`Uploading ${label}...`, { id: `doc-${slotId}` });
+
+    try {
+      const uploaded = await uploadUserDocument(uid, slotId, file);
+      setFiles((current) => ({
         ...current,
-        [slotId]: { file, url, name: file.name, kind: fileKind(file) },
-      };
-    });
-    toast(`${labelForSlot(slotId)} updated`, { id: `doc-${slotId}` });
+        [slotId]: {
+          file,
+          url: uploaded.url,
+          name: uploaded.name,
+          kind: uploaded.kind,
+          path: uploaded.path,
+          size: uploaded.size,
+        },
+      }));
+      toast.success(`${label} uploaded`, { id: `doc-${slotId}` });
+      setTimeout(() => {
+        void persistProfile(false);
+      }, 50);
+    } catch (err) {
+      console.error("Document upload failed:", err);
+      toast.error(
+        err instanceof Error ? err.message : "Document upload failed",
+        { id: `doc-${slotId}` }
+      );
+    }
   }
 
-  function removeFile(id: string) {
-    setFiles((current) => {
-      const previous = current[id];
-      if (previous) URL.revokeObjectURL(previous.url);
-      return { ...current, [id]: null };
-    });
+  async function removeFile(id: string) {
+    const currentSlot = files[id];
+    const label = labelForSlot(id);
+    setFiles((current) => ({ ...current, [id]: null }));
     setViewer((current) => (current && files[id]?.url === current.url ? null : current));
-    toast(`${labelForSlot(id)} removed`, { id: `doc-${id}-removed` });
+    toast(`${label} removed`, { id: `doc-${id}-removed` });
+
+    if (currentSlot?.path) {
+      try {
+        await deleteUserDocument(currentSlot.path);
+      } catch (err) {
+        console.warn("Storage deletion error:", err);
+      }
+    }
+
+    setTimeout(() => {
+      void persistProfile(false);
+    }, 50);
   }
 
   async function onConnect() {
@@ -135,6 +363,9 @@ export default function UserInformation({
         await syncCalendarEvents(next, dated);
         toast("Calendar synced");
       }
+      setTimeout(() => {
+        void persistProfile(false);
+      }, 50);
     } catch (error) {
       toast(error instanceof Error ? error.message : "Could not connect Gmail");
     } finally {
@@ -146,6 +377,9 @@ export default function UserInformation({
     await disconnectGoogleAccount(account);
     setAccount(null);
     toast("Gmail disconnected");
+    setTimeout(() => {
+      void persistProfile(false);
+    }, 50);
   }
 
   const nationalitySuggestion = nationalities.find((item) =>
@@ -164,7 +398,7 @@ export default function UserInformation({
         type="file"
         tabIndex={-1}
         accept="image/*,.pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-        onChange={onFileChosen}
+        onChange={(e) => void onFileChosen(e)}
       />
 
       <div className="panel">
@@ -174,7 +408,7 @@ export default function UserInformation({
             size={32}
             icon={<X size={14} strokeWidth={1.5} />}
             aria-label="Close user information"
-            onClick={onClose}
+            onClick={() => void handleClose()}
           />
         </header>
 
@@ -183,9 +417,42 @@ export default function UserInformation({
           <div className="fieldGroup">
             <span className="fieldLabel">Name</span>
             <div className="nameRow">
-              <FieldItem placeholder="First" autoComplete="given-name" name="given-name" />
-              <FieldItem placeholder="Middle" autoComplete="additional-name" name="additional-name" />
-              <FieldItem placeholder="Last" autoComplete="family-name" name="family-name" />
+              <FieldItem
+                placeholder="First"
+                autoComplete="given-name"
+                name="given-name"
+                value={firstName}
+                disabled={isInitialLoading}
+                onChange={(e) => {
+                  setFirstName(e.target.value);
+                  triggerAutoSave();
+                }}
+                onBlur={() => void persistProfile(true)}
+              />
+              <FieldItem
+                placeholder="Middle"
+                autoComplete="additional-name"
+                name="additional-name"
+                value={middleName}
+                disabled={isInitialLoading}
+                onChange={(e) => {
+                  setMiddleName(e.target.value);
+                  triggerAutoSave();
+                }}
+                onBlur={() => void persistProfile(true)}
+              />
+              <FieldItem
+                placeholder="Last"
+                autoComplete="family-name"
+                name="family-name"
+                value={lastName}
+                disabled={isInitialLoading}
+                onChange={(e) => {
+                  setLastName(e.target.value);
+                  triggerAutoSave();
+                }}
+                onBlur={() => void persistProfile(true)}
+              />
             </div>
           </div>
           <div className="splitRow">
@@ -206,7 +473,12 @@ export default function UserInformation({
                   value={nationality}
                   aria-label="Nationality"
                   aria-autocomplete="list"
-                  onChange={(event) => setNationality(event.target.value)}
+                  disabled={isInitialLoading}
+                  onChange={(event) => {
+                    setNationality(event.target.value);
+                    triggerAutoSave();
+                  }}
+                  onBlur={() => void persistProfile(true)}
                   onKeyDown={(event) => {
                     if (
                       (event.key === "Tab" || event.key === "Enter") &&
@@ -215,6 +487,7 @@ export default function UserInformation({
                     ) {
                       event.preventDefault();
                       setNationality(nationalitySuggestion);
+                      triggerAutoSave();
                     }
                   }}
                 />
@@ -245,7 +518,17 @@ export default function UserInformation({
             <div className="fieldGroup narrow">
               <span className="fieldLabel">Cgpa</span>
               <div className="cgpaRow">
-                <FieldItem placeholder="3.80" inputMode="decimal" />
+                <FieldItem
+                  placeholder="3.80"
+                  inputMode="decimal"
+                  value={cgpa}
+                  disabled={isInitialLoading}
+                  onChange={(e) => {
+                    setCgpa(e.target.value);
+                    triggerAutoSave();
+                  }}
+                  onBlur={() => void persistProfile(true)}
+                />
                 <div className="scalePicker" role="group" aria-label="CGPA scale">
                   {SCALES.map((value) => (
                     <ButtonItem
@@ -253,7 +536,10 @@ export default function UserInformation({
                       size={24}
                       text={value}
                       state={scale === value ? "active" : "default"}
-                      onClick={() => setScale(value)}
+                      onClick={() => {
+                        setScale(value);
+                        setTimeout(() => void persistProfile(true), 10);
+                      }}
                     />
                   ))}
                 </div>
@@ -277,7 +563,12 @@ export default function UserInformation({
                   value={courseStudied}
                   aria-label="Course studied"
                   aria-autocomplete="list"
-                  onChange={(event) => setCourseStudied(event.target.value)}
+                  disabled={isInitialLoading}
+                  onChange={(event) => {
+                    setCourseStudied(event.target.value);
+                    triggerAutoSave();
+                  }}
+                  onBlur={() => void persistProfile(true)}
                   onKeyDown={(event) => {
                     if (
                       (event.key === "Tab" || event.key === "Enter") &&
@@ -286,6 +577,7 @@ export default function UserInformation({
                     ) {
                       event.preventDefault();
                       setCourseStudied(courseStudiedSuggestion);
+                      triggerAutoSave();
                     }
                   }}
                 />
@@ -330,7 +622,7 @@ export default function UserInformation({
                           size={24}
                           aria-label={`Remove ${label}`}
                           icon={<Trash2 size={14} strokeWidth={1.5} />}
-                          onClick={() => removeFile(slot.id)}
+                          onClick={() => void removeFile(slot.id)}
                         />
                       </span>
                     </div>

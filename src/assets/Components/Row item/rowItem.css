@@ -43,29 +43,29 @@
   flex: 1;
   min-width: 0;
 
-  align-items: flex-start;
+  align-items: center;
   justify-content: flex-start;
+  overflow: hidden;
 }
 
 .scholarshipname {
-  display: flex;
-  flex-direction: row;
+  display: inline-block;
   font-weight: var(--font-weight-medium-intermediate);
   white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: min(340px, 50%);
   flex-shrink: 0;
-  align-items: flex-start;
 }
 
 .scholarshiplocation {
-  display: flex;
-  flex-direction: row;
+  display: inline-block;
   font-weight: var(--font-weight-intermediate);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
   min-width: 0;
   flex: 1;
-  align-items: center;
 }
 
 .infoContent {

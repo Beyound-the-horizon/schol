@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { scholarships, type Scholarship } from "./data/scholarships";
 import HomeView from "./assets/Views/homeView";
@@ -10,6 +10,7 @@ import type { Filters } from "./assets/Components/Search bar/searchbarItem";
 import { deadlineToIso, filterScholarships } from "./lib/filterScholarships";
 import { loadStoredAccount } from "./lib/googleAccount";
 import { fetchScholarships, fetchScholarshipById } from "./services/api";
+import { supabase } from "./lib/supabase";
 import "./App.css";
 
 type Screen = "home" | "scholarship" | "profile" | "bookmarks";
@@ -54,10 +55,8 @@ export default function App() {
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  // Fetch real scholarships from backend connected to Supabase
-  useEffect(() => {
-    let active = true;
-
+  // Reusable loader for initial, filtered, and realtime updates
+  const loadScholarships = useCallback(() => {
     fetchScholarships({
       page,
       limit: pageSize,
@@ -68,7 +67,6 @@ export default function App() {
       course: filters.course,
     })
       .then((res) => {
-        if (!active) return;
         if (res.scholarships && res.scholarships.length > 0) {
           setDbScholarships(res.scholarships);
           setApiTotalPages(res.totalPages || 1);
@@ -78,11 +76,48 @@ export default function App() {
       .catch((err) => {
         console.warn("Could not fetch scholarships from backend, using fallback:", err);
       });
+  }, [page, pageSize, filters]);
+
+  // Initial and filter-change fetch
+  useEffect(() => {
+    loadScholarships();
+  }, [loadScholarships]);
+
+  // Realtime subscription & focus refresh whenever entries are added/updated in Supabase
+  useEffect(() => {
+    // 1. Supabase Postgres changes listener (instant realtime push)
+    const channel = supabase
+      .channel("scholarships-realtime-feed")
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "scholarships",
+        },
+        () => {
+          loadScholarships();
+        }
+      )
+      .subscribe();
+
+    // 2. Re-fetch when user focuses the tab after working in Supabase Table Editor
+    function onTabFocus() {
+      loadScholarships();
+    }
+    window.addEventListener("focus", onTabFocus);
+    document.addEventListener("visibilitychange", onTabFocus);
+
+    // 3. Periodic polling interval (every 10 seconds)
+    const interval = setInterval(loadScholarships, 10000);
 
     return () => {
-      active = false;
+      supabase.removeChannel(channel);
+      window.removeEventListener("focus", onTabFocus);
+      document.removeEventListener("visibilitychange", onTabFocus);
+      clearInterval(interval);
     };
-  }, [page, pageSize, filters]);
+  }, [loadScholarships]);
 
   const activeScholarships = useMemo(
     () => (dbScholarships.length > 0 ? dbScholarships : scholarships),

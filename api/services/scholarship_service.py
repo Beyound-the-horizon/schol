@@ -17,7 +17,13 @@ class ScholarshipService:
         filters: ScholarshipFilterParams,
     ) -> Tuple[List[ScholarshipModel], int]:
         """Retrieve published scholarships with total matching count."""
-        base_stmt = select(ScholarshipModel).where(ScholarshipModel.is_published.is_(True))
+        base_stmt = select(ScholarshipModel).where(
+            or_(
+                ScholarshipModel.is_published.is_(True),
+                ScholarshipModel.publication_status != "rejected",
+                ScholarshipModel.publication_status.is_(None),
+            )
+        )
 
         # Filter by host country (projected as location)
         if filters.location:
@@ -109,16 +115,24 @@ class ScholarshipService:
         """Compute live dashboard stats for published scholarships."""
         today = date.today()
 
-        # Total published
+        # Total active / published
         total_stmt = select(func.count(ScholarshipModel.id)).where(
-            ScholarshipModel.is_published.is_(True)
+            or_(
+                ScholarshipModel.is_published.is_(True),
+                ScholarshipModel.publication_status != "rejected",
+                ScholarshipModel.publication_status.is_(None),
+            )
         )
         total_res = await session.execute(total_stmt)
         total = total_res.scalar_one() or 0
 
         # Ongoing (deadline is in future or rolling/null)
         ongoing_stmt = select(func.count(ScholarshipModel.id)).where(
-            ScholarshipModel.is_published.is_(True),
+            or_(
+                ScholarshipModel.is_published.is_(True),
+                ScholarshipModel.publication_status != "rejected",
+                ScholarshipModel.publication_status.is_(None),
+            ),
             or_(ScholarshipModel.deadline.is_(None), ScholarshipModel.deadline >= today),
         )
         ongoing_res = await session.execute(ongoing_stmt)
@@ -126,7 +140,11 @@ class ScholarshipService:
 
         # Eligible (open without disqualifying country restrictions)
         eligible_stmt = select(func.count(ScholarshipModel.id)).where(
-            ScholarshipModel.is_published.is_(True),
+            or_(
+                ScholarshipModel.is_published.is_(True),
+                ScholarshipModel.publication_status != "rejected",
+                ScholarshipModel.publication_status.is_(None),
+            ),
             or_(
                 ScholarshipModel.eligible_countries.is_(None),
                 cast(ScholarshipModel.eligible_countries, String).ilike("%nigeria%"),
@@ -151,7 +169,11 @@ class ScholarshipService:
         """Retrieve single published scholarship by primary key."""
         stmt = select(ScholarshipModel).where(
             ScholarshipModel.id == scholarship_id,
-            ScholarshipModel.is_published.is_(True),
+            or_(
+                ScholarshipModel.is_published.is_(True),
+                ScholarshipModel.publication_status != "rejected",
+                ScholarshipModel.publication_status.is_(None),
+            ),
         )
         result = await session.execute(stmt)
         return result.scalar_one_or_none()

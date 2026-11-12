@@ -36,8 +36,8 @@ export default function RowItem({
       {...props}
     >
       <div className="mainContent">
-        <span className="scholarshipname">{name}</span>
-        <span className="scholarshiplocation">{location}</span>
+        <span className="scholarshipname" title={name}>{name}</span>
+        <span className="scholarshiplocation" title={location}>{location}</span>
       </div>
 
       <div className="infoContent">

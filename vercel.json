@@ -1,4 +1,6 @@
 {
+  "buildCommand": "mkdir -p dist",
+  "outputDirectory": "dist",
   "functions": {
     "api/index.py": {
       "maxDuration": 60

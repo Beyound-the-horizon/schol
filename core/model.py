@@ -40,3 +40,4 @@ class Scholarship(Base):
     application_fee_and_effort: Mapped[str | None] = mapped_column(Text)
     official_url: Mapped[str | None] = mapped_column(Text, unique=True)
     last_verified_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    ai_guidance: Mapped[dict | None] = mapped_column(JSONB, nullable=True)

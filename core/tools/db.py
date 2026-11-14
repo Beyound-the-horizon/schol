@@ -54,7 +54,7 @@ def acquire_run_lock():
 
 
 def ensure_schema_compatibility():
-    """Ensure Supabase columns are widened to TEXT to avoid StringDataRightTruncation."""
+    """Ensure Supabase columns are widened to TEXT and ai_guidance JSONB column exists."""
     with SessionLocal() as session:
         try:
             session.execute(text("""
@@ -66,6 +66,8 @@ def ensure_schema_compatibility():
                   ALTER COLUMN deadline_timezone TYPE TEXT,
                   ALTER COLUMN name TYPE TEXT,
                   ALTER COLUMN provider TYPE TEXT;
+                ALTER TABLE scholarships
+                  ADD COLUMN IF NOT EXISTS ai_guidance JSONB;
             """))
             session.commit()
         except Exception:

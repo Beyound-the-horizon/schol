@@ -8,7 +8,5 @@ psycopg[binary]>=3.1.0
 requests>=2.31.0
 tenacity>=8.2.0
 python-dotenv>=1.0.0
-
-# Optional Web / API Services
 fastapi>=0.110.0
 uvicorn[standard]>=0.28.0
